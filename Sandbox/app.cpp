@@ -73,6 +73,10 @@ int main()
 		}
 
         g.update(dt);
+
+		
+
+		//don't use imgui after this;
 		ImGui::SFML::Update(window, sf::seconds(dt));
         window.clear();
 
@@ -84,6 +88,8 @@ int main()
 		v.setCenter(n);
 
 		window.setView(v);
+
+		ImGui::LabelText("Update Time", "%0.6f", (Lib::getTimeStamp() - frameStart));
 
         g.draw(window);
 
@@ -97,6 +103,7 @@ int main()
 			shakeStrength = 0.0;
 
 		frameEnd = Lib::getTimeStamp();
+		
 		fpsCounter.setString("FPS:"+std::to_string(1.0 / dt));
 		
 		ImGui::EndFrame();

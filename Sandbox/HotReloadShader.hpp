@@ -8,6 +8,9 @@
 using namespace std;
 class HotReloadShader {
 public:
+
+	bool	inError = false;
+	bool	enableHotReloading = true;
 	string vertPath;
 	string fragPath;
 
@@ -16,18 +19,20 @@ public:
 
 	time_t mtimeVert = 0;
 	time_t mtimeFrag = 0;
-	bool	inError = false;
+	
 
 	std::function<void(void)> onUpdate;
 
 	HotReloadShader( string vertPath, string fragPath) {
 		this->vertPath = vertPath;
 		this->fragPath = fragPath;
+		tick();
 	}
 
 	float	time = 0.0;
 	string	getFileContent(const std::string & path);
 	void	update(double dt);
+	void	tick();
 
 	sf::Shader sh;
 };
