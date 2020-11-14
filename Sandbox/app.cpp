@@ -72,12 +72,11 @@ int main()
 			shakeStrength = 15.0;
 		}
 
-        g.update(dt);
-
-		
-
-		//don't use imgui after this;
+		//don't use imgui before this;
 		ImGui::SFML::Update(window, sf::seconds(dt));
+
+        g.update(dt);
+		
         window.clear();
 
 		window.setView(v);

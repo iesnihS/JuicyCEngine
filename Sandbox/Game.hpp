@@ -8,7 +8,6 @@
 
 #include "Particle.hpp"
 #include "ParticleMan.hpp"
-#include "Char.hpp"
 
 using namespace sf;
 

@@ -29,7 +29,7 @@ public:
 		el = RectangleShape(Vector2f(8, 8));
 		el.setOrigin(4, 4);
 		el.setFillColor(sf::Color(0xff0000ff));
-		life = Dice::randF() * 6.0 + 2.0 * 6.0;
+		life = Dice::randF() * 6.0f + 2.0f * 6.0f;
 	}
 
 	void update(float dt) {
@@ -45,7 +45,7 @@ public:
 		
 		bhv(this,dt);
 
-		if (el.getSize().x <= 0.1 || el.getSize().x <= 0.1) {
+		if (el.getSize().x <= 0.1 || el.getSize().y <= 0.1) {
 			destroyed = true;
 		}
 	}

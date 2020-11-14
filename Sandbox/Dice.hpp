@@ -9,6 +9,6 @@ public:
 	}
 	
 	static float randF() {
-		return 1.0 * rand() / RAND_MAX;
+		return 1.0f * rand() / RAND_MAX;
 	}
 };
