@@ -159,8 +159,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bloom.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HotReloadShader.cpp" />
+    <ClCompile Include="Lib.cpp" />
     <ClCompile Include="libs\eastl\source\allocator_eastl.cpp" />
     <ClCompile Include="libs\eastl\source\assert.cpp" />
     <ClCompile Include="libs\eastl\source\atomic.cpp" />
@@ -178,6 +180,8 @@
     <ClCompile Include="app.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app.h" />
+    <ClInclude Include="Bloom.hpp" />
     <ClInclude Include="C.hpp" />
     <ClInclude Include="Dice.hpp" />
     <ClInclude Include="eastl_config.hpp" />

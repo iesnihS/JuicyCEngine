@@ -3,24 +3,33 @@
 
 #include <iostream> // inclut un entete/header appelé iostream
 
+#include <imgui.h>
+#include <imgui-SFML.h>
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Audio.hpp>
+
+#include "Bloom.hpp"
 #include "Dice.hpp"
 #include "Lib.hpp"
 #include "Game.hpp"
 #include "Interp.hpp"
-#include <imgui.h>
-#include <imgui-SFML.h>
+#include "HotReloadShader.hpp"
+#include "app.h"
+
 using namespace std;
 using namespace sf;
+
+HotReloadShader * bloomShader = nullptr;
+HotReloadShader * blurShader = nullptr;
 
 int main()
 {
     cout << "Hello World!\n";
 	
     sf::RenderWindow window(sf::VideoMode(1280, 720,32), "SFML works!");
-	window.setVerticalSyncEnabled(true);
+	window.setVerticalSyncEnabled(false);
     Font font;
 
     if (!font.loadFromFile("res/MAIAN.TTF")) {
@@ -52,6 +61,23 @@ int main()
 
 	double frameStart = 0.0;
 	double frameEnd = 0.0;
+
+	sf::Texture winTex;
+	winTex.create(window.getSize().x, window.getSize().y);
+
+	bloomShader = new HotReloadShader("res/simple.vert", "res/bloom.frag");
+	blurShader = new HotReloadShader("res/simple.vert", "res/blur.frag");
+	sf::RenderTexture* destX = new sf::RenderTexture();
+	destX->create(window.getSize().x, window.getSize().y);
+	destX->clear(sf::Color(0, 0, 0, 0));
+
+	sf::RenderTexture* destFinal = new sf::RenderTexture();
+	destFinal->create(window.getSize().x, window.getSize().y);
+	destFinal->clear(sf::Color(0, 0, 0, 0));	
+
+	float bloomWidth = 12;
+	sf::Glsl::Vec4 bloomMul(1,1,1,0.8);
+
     while (window.isOpen())
     {
 		double dt = frameEnd - frameStart;
@@ -88,11 +114,19 @@ int main()
 
 		window.setView(v);
 
-		ImGui::LabelText("Update Time", "%0.6f", (Lib::getTimeStamp() - frameStart));
+		if (ImGui::CollapsingHeader("Bloom Control")) {
+			ImGui::LabelText("Update Time", "%0.6f", (Lib::getTimeStamp() - frameStart));
+			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);
+			ImGui::SliderFloat4("bloomMul", &bloomMul.x, 0, 1.0);
+		}
+		g.im();
 
         g.draw(window);
 
 		window.draw(fpsCounter);
+
+		if (bloomWidth)
+			Bloom::render(window,winTex,destX,destFinal,&blurShader->sh,&bloomShader->sh, bloomWidth, bloomMul);
 
 		ImGui::SFML::Render(window);
         window.display();

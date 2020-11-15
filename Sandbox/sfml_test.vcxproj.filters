@@ -78,6 +78,12 @@
     <ClCompile Include="libs\eastl\source\thread_support.cpp">
       <Filter>eastl\src</Filter>
     </ClCompile>
+    <ClCompile Include="Bloom.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Lib.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interp.hpp">
@@ -342,6 +348,12 @@
       <Filter>eastl\include</Filter>
     </ClInclude>
     <ClInclude Include="eastl_config.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Bloom.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="app.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>

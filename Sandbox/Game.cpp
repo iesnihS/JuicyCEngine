@@ -24,7 +24,7 @@ Game::Game(sf::RenderWindow * win) {
 	this->win = win;
 	bg = sf::RectangleShape(Vector2f(win->getSize().x, win->getSize().y));
 
-	bool isOk = tex.loadFromFile("res/bg.jpg");
+	bool isOk = tex.loadFromFile("res/bg_stars.png");
 	if (!isOk) {
 		printf("ERR : LOAD FAILED\n");
 	}
@@ -110,8 +110,10 @@ void Game::pollInput(double dt) {
 
 }
 
-static bool s_RectShapeFlood = false;
+static bool s_RectVAFlood = false;
+static sf::VertexArray va;
 
+static bool s_RectShapeFlood = false;
 static eastl::vector<sf::RectangleShape> rects;
 
 void Game::update(double dt) {
@@ -130,18 +132,70 @@ void Game::update(double dt) {
 		g_tickTimer = 0.1;
 	}
 
-	if (ImGui::Button("Flood - RectShape")) {
-		s_RectShapeFlood = true;
-	}
 
-	if (s_RectShapeFlood) {
-		if (dt > (1.0 / 60)) {
-			for (int i = 0; i < 100; ++i) {
-				sf::RectangleShape r(Vector2f(16, 16));
-				r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
-				rects.push_back(r);
+	if (ImGui::CollapsingHeader("Flood Rect - Shapes Method")) {
+		int start;
+		ImGui::PushID(&start);
+		ImGui::Indent();
+		if (!s_RectShapeFlood && ImGui::Button("Start")) {
+			s_RectShapeFlood = true;
+		}
+
+		if (s_RectShapeFlood) {
+			ImGui::LabelText("NbShapes", "%d", rects.size());
+			if (dt < (1.0 / 60)) {
+				for (int i = 0; i < 1000; ++i) {
+					sf::RectangleShape r(Vector2f(13, 13));
+					r.rotate(Dice::angleDeg());
+					r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
+					r.setFillColor(Lib::makeFromHSV(Dice::angleDeg(), 0.9, 0.9));
+					rects.push_back(r);
+				}
+			}
+			if (ImGui::Button("Reset")) {
+				rects.clear();
+				s_RectShapeFlood = false;
 			}
 		}
+		ImGui::Unindent();
+		ImGui::PopID();
+	}
+
+	if (ImGui::CollapsingHeader("Flood Rect - Vertex Array Method")) {
+		int start;
+		ImGui::PushID(&start);
+		ImGui::Indent();
+		if (!s_RectVAFlood && ImGui::Button("Start")) {
+			s_RectVAFlood = true;
+		}
+
+		if (s_RectVAFlood) {
+			ImGui::LabelText("Nb VA Rects", "%d", rects.size());
+			if (dt < (1.0 / 60)) {
+				for (int i = 0; i < 1000; ++i) {
+					sf::RectangleShape r(Vector2f(13, 13));
+					r.rotate(Dice::angleDeg());
+					r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
+					r.setFillColor(Lib::makeFromHSV(Dice::angleDeg(), 0.9, 0.9));
+					//va.push_back(r);
+
+					va.setPrimitiveType(sf::PrimitiveType::Quads);
+
+					auto trs = r.getTransform();
+					sf::Vertex v0 = sf::Vertex(trs * r.getPoint(0), r.getFillColor());
+					sf::Vertex v1 = sf::Vertex(trs * r.getPoint(1), r.getFillColor());
+					sf::Vertex v2 = sf::Vertex(trs * r.getPoint(2), r.getFillColor());
+					sf::Vertex v3 = sf::Vertex(trs * r.getPoint(3), r.getFillColor());
+					//va.append( )
+				}
+			}
+			if (ImGui::Button("Reset")) {
+				va.clear();
+				s_RectVAFlood = false;
+			}
+		}
+		ImGui::Unindent();
+		ImGui::PopID();
 	}
 }
 
@@ -186,5 +240,10 @@ bool Game::isWall(int cx, int cy)
 			return true;
 	}
 	return false;
+}
+
+void Game::im()
+{
+
 }
 

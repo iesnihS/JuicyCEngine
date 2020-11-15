@@ -37,7 +37,7 @@ public:
 		y += dy * dt;
 
 		el.setPosition(x, y);
-		el.rotate(dt * 3.0);
+		el.rotate(dt * 3.0f);
 
 		life -= dt;
 		

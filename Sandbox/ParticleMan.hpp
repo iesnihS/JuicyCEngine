@@ -14,7 +14,7 @@ public:
 	void update(double dt) {
 		for (auto iter = parts.begin(); iter != parts.end(); ) {
 			Particle & p = *iter;
-			p.update(dt);
+			p.update((float)dt);
 			if (p.destroyed)
 				iter = parts.erase(iter);
 			else

@@ -45,4 +45,5 @@ public:
 
 	void onFileTick();
 	bool isWall(int cx, int cy);
+	void im();
 };

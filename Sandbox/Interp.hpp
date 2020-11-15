@@ -19,14 +19,14 @@ public:
 		float p2, 
 		float p3, float t) {
 		
-		float q = 2.0 * p1;
+		float q = 2.0f * p1;
 		float t2 = t * t;
 
 		q += (-p0 + p2) * t;
-		q += (2.0 * p0 - 5.0 * p1 + 4 * p2 - p3) * t2;
+		q += (2.0f * p0 - 5.0f * p1 + 4 * p2 - p3) * t2;
 		q += (-p0 + 3 * p1 - 3 * p2 + p3) * t2 * t;
 
-		return 0.5 * q;
+		return 0.5f * q;
 	};
 
 	static Vector2f c2(
