@@ -18,11 +18,19 @@
 #include "HotReloadShader.hpp"
 #include "app.h"
 
+#include <array>
+#include <numeric>
+#include <algorithm>
+#include <functional>
+
 using namespace std;
 using namespace sf;
 
-HotReloadShader * bloomShader = nullptr;
-HotReloadShader * blurShader = nullptr;
+static HotReloadShader * bloomShader = nullptr;
+static HotReloadShader * blurShader = nullptr;
+
+static std::array<double, 16> dts;
+static int curDts = 0;
 
 int main()
 {
@@ -103,6 +111,20 @@ int main()
 
         g.update(dt);
 		
+		if (ImGui::CollapsingHeader("App Stats", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+			//double df = (Lib::getTimeStamp() - frameStart);
+
+			double mdt = std::accumulate(dts.begin(),dts.end(),0.0) / dts.size();
+			ImGui::LabelText("Update Time", "%0.6f", dt);
+			ImGui::LabelText("FPS", "%0.6f", 1.0 / dt);
+
+			static double captureMdt = 0.0;
+			if (curDts == 0) {
+				captureMdt = mdt;
+			}
+			ImGui::LabelText("Avg Update Time", "%0.6f", captureMdt);
+			ImGui::LabelText("Avg FPS", "%0.6f", 1.0 / captureMdt);
+		}
         window.clear();
 
 		window.setView(v);
@@ -115,7 +137,7 @@ int main()
 		window.setView(v);
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
-			ImGui::LabelText("Update Time", "%0.6f", (Lib::getTimeStamp() - frameStart));
+			
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);
 			ImGui::SliderFloat4("bloomMul", &bloomMul.x, 0, 1.0);
 		}
@@ -140,6 +162,12 @@ int main()
 		fpsCounter.setString("FPS:"+std::to_string(1.0 / dt));
 		
 		ImGui::EndFrame();
+
+		curDts++;
+		if (curDts >= dts.size()) {
+			curDts = 0;
+		}
+		dts[curDts] = dt;
     }
 
 	ImGui::SFML::Shutdown();

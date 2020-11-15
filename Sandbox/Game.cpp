@@ -1,6 +1,7 @@
 #include "C.hpp"
 #include "Game.hpp"
 #include <imgui.h>
+#include <array>
 #include "HotReloadShader.hpp"
 #include "eastl_config.hpp"
 
@@ -112,9 +113,20 @@ void Game::pollInput(double dt) {
 
 static bool s_RectVAFlood = false;
 static sf::VertexArray va;
+static RenderStates vaRs;
+static float		vaAlpha = 1.0;
+static int			vaSize = 13;
 
 static bool s_RectShapeFlood = false;
 static eastl::vector<sf::RectangleShape> rects;
+
+int blendModeIndex(sf::BlendMode bm) {
+	if (bm == sf::BlendAlpha) return 0;
+	if (bm == sf::BlendAdd) return 1;
+	if (bm == sf::BlendNone) return 2;
+	if (bm == sf::BlendMultiply) return 3;
+	return 4;
+};
 
 void Game::update(double dt) {
 	pollInput(dt);
@@ -126,9 +138,11 @@ void Game::update(double dt) {
 
 	afterParts.update(dt);
 
+	bool isTick = false;
 	g_tickTimer -= dt;
 	if (g_tickTimer <= 0.0) {
 		onFileTick();
+		isTick = true;
 		g_tickTimer = 0.1;
 	}
 
@@ -142,9 +156,13 @@ void Game::update(double dt) {
 		}
 
 		if (s_RectShapeFlood) {
-			ImGui::LabelText("NbShapes", "%d", rects.size());
-			if (dt < (1.0 / 60)) {
-				for (int i = 0; i < 1000; ++i) {
+			std::string format = "%0.1f";
+			double size = rects.size();
+			if (size > 1024) { size /= 1000.0; format = "%0.1f k"; }
+			if (size > 1024) { size /= 1000.0; format = "%0.1f m"; }
+			ImGui::LabelText("Nb Shapes", format.c_str(), size);
+			if (isTick && dt < (1.0 / 60)) {
+				for (int i = 0; i < 500; ++i) {
 					sf::RectangleShape r(Vector2f(13, 13));
 					r.rotate(Dice::angleDeg());
 					r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
@@ -167,32 +185,65 @@ void Game::update(double dt) {
 		ImGui::Indent();
 		if (!s_RectVAFlood && ImGui::Button("Start")) {
 			s_RectVAFlood = true;
+			vaRs.blendMode = sf::BlendAlpha;
+			va.setPrimitiveType(sf::PrimitiveType::Quads);
 		}
 
 		if (s_RectVAFlood) {
-			ImGui::LabelText("Nb VA Rects", "%d", rects.size());
-			if (dt < (1.0 / 60)) {
-				for (int i = 0; i < 1000; ++i) {
-					sf::RectangleShape r(Vector2f(13, 13));
+			std::string format = "%0.1f";
+			double size = va.getVertexCount()/4.0;
+			if (size > 1024) { size /= 1000.0; format = "%0.1f k"; }
+			if (size > 1024) { size /= 1000.0; format = "%0.1f m"; }
+
+			ImGui::LabelText("Nb VA Rects", format.c_str(), size);
+			if (isTick && dt < (1.0 / 60)) {
+				for (int i = 0; i < 250000; ++i) 
+				{
+					sf::RectangleShape r(Vector2f(vaSize, vaSize));
 					r.rotate(Dice::angleDeg());
 					r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
-					r.setFillColor(Lib::makeFromHSV(Dice::angleDeg(), 0.9, 0.9));
-					//va.push_back(r);
 
-					va.setPrimitiveType(sf::PrimitiveType::Quads);
-
-					auto trs = r.getTransform();
-					sf::Vertex v0 = sf::Vertex(trs * r.getPoint(0), r.getFillColor());
-					sf::Vertex v1 = sf::Vertex(trs * r.getPoint(1), r.getFillColor());
-					sf::Vertex v2 = sf::Vertex(trs * r.getPoint(2), r.getFillColor());
-					sf::Vertex v3 = sf::Vertex(trs * r.getPoint(3), r.getFillColor());
-					//va.append( )
+					sf::Color c = Lib::makeFromHSV(Dice::angleDeg(), 0.9, 1.0);
+					c.a = clamp<float>(vaAlpha * 255.0f,0,255);
+					auto & trs = r.getTransform();
+					
+					sf::Vertex v0(trs * r.getPoint(0), c);
+					sf::Vertex v1(trs * r.getPoint(1), c);
+					sf::Vertex v2(trs * r.getPoint(2), c);
+					sf::Vertex v3(trs * r.getPoint(3), c);
+					
+					va.append(v0);
+					va.append(v1);
+					va.append(v2);
+					va.append(v3);
 				}
 			}
 			if (ImGui::Button("Reset")) {
 				va.clear();
 				s_RectVAFlood = false;
 			}
+		}
+
+		ImGui::SliderInt("size", &vaSize, 0, 256);
+		ImGui::SliderFloat("alpha", &vaAlpha, 0, 2.2);
+		std::array<string,5> blends = { "Alpha","Add","Opaque","Multiply","???"};
+		if (ImGui::BeginCombo("blend", blends[blendModeIndex(vaRs.blendMode)].c_str())) {
+
+			bool selected = false;
+			if (ImGui::Selectable("Alpha", selected = (vaRs.blendMode == sf::BlendAlpha)))
+				vaRs.blendMode = sf::BlendAlpha;
+			if (selected) ImGui::SetItemDefaultFocus();
+
+			if (ImGui::Selectable("Add", selected = (vaRs.blendMode == sf::BlendAdd)))
+				vaRs.blendMode = sf::BlendAdd;
+			if (selected) ImGui::SetItemDefaultFocus();
+			if (ImGui::Selectable("Opaque", selected = (vaRs.blendMode == sf::BlendNone)))
+				vaRs.blendMode = sf::BlendNone;
+			if (selected) ImGui::SetItemDefaultFocus();
+			if (ImGui::Selectable("Multiply", selected = (vaRs.blendMode == sf::BlendMultiply)))
+				vaRs.blendMode = sf::BlendMultiply;
+			if (selected) ImGui::SetItemDefaultFocus();
+			ImGui::EndCombo();
 		}
 		ImGui::Unindent();
 		ImGui::PopID();
@@ -217,9 +268,12 @@ void Game::update(double dt) {
 		win.draw(r);
 
 	if(s_RectShapeFlood)
-		for (sf::RectangleShape& r : rects) {
+		for (sf::RectangleShape& r : rects) 
 			win.draw(r);
-		}
+	
+	if (s_RectVAFlood) {
+		win.draw(va,vaRs);
+	}
 
 	afterParts.draw(win);
 }

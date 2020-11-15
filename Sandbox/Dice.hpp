@@ -22,6 +22,6 @@ public:
 	}
 
 	static float angleDeg() {
-		return randF() * 2 * 360;
+		return randF() * 360;
 	}
 };
