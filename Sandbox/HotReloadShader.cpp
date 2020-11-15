@@ -4,7 +4,6 @@
 #include "Lib.hpp"
 
 string HotReloadShader::getFileContent(const std::string & path) {
-
 	string res;
 
 	FILE * f = fopen(path.c_str(), "r");
@@ -68,6 +67,7 @@ void HotReloadShader::tick() {
 	if (hasOneChanged) {
 		bool ok = sh.loadFromMemory(vertSrc.c_str(), fragSrc.c_str());
 		if (ok) {
+			cout << "shader updated" << endl;
 			if (onUpdate)
 				onUpdate();
 		}

@@ -137,7 +137,6 @@ int main()
 		window.setView(v);
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
-			
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);
 			ImGui::SliderFloat4("bloomMul", &bloomMul.x, 0, 1.0);
 		}
@@ -146,6 +145,9 @@ int main()
         g.draw(window);
 
 		window.draw(fpsCounter);
+
+		if (blurShader) blurShader->update(dt);
+		if (bloomShader) bloomShader->update(dt);
 
 		if (bloomWidth)
 			Bloom::render(window,winTex,destX,destFinal,&blurShader->sh,&bloomShader->sh, bloomWidth, bloomMul);
@@ -162,7 +164,7 @@ int main()
 		fpsCounter.setString("FPS:"+std::to_string(1.0 / dt));
 		
 		ImGui::EndFrame();
-
+		
 		curDts++;
 		if (curDts >= dts.size()) {
 			curDts = 0;

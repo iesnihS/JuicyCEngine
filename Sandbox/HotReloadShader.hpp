@@ -20,7 +20,6 @@ public:
 	time_t mtimeVert = 0;
 	time_t mtimeFrag = 0;
 	
-
 	std::function<void(void)> onUpdate;
 
 	HotReloadShader( string vertPath, string fragPath) {

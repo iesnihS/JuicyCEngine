@@ -14,15 +14,14 @@ using namespace sf;
 class HotReloadShader;
 class Game {
 public:
-	sf::RenderWindow*	win = nullptr;
+	sf::RenderWindow*				win = nullptr;
 
-	sf::RectangleShape  bg;
-	HotReloadShader *	bgShader = nullptr;
+	sf::RectangleShape				bg;
+	HotReloadShader *				bgShader = nullptr;
 
-	sf::Texture			tex;
+	sf::Texture						tex;
 
-	bool				closing = false;
-
+	bool							closing = false;
 	
 	std::vector<sf::Vector2i>		walls;
 	std::vector<sf::RectangleShape> wallSprites;

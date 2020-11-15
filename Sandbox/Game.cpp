@@ -4,6 +4,7 @@
 #include <array>
 #include "HotReloadShader.hpp"
 #include "eastl_config.hpp"
+#include "VirtualCallTest.hpp"
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -203,7 +204,7 @@ void Game::update(double dt) {
 					r.rotate(Dice::angleDeg());
 					r.setPosition(Dice::randF() * 1280, Dice::randF() * 600);
 
-					sf::Color c = Lib::makeFromHSV(Dice::angleDeg(), 0.9, 1.0);
+					sf::Color c = Lib::makeFromHSV(Dice::angleDeg(), 0.9f, 1.0f);
 					c.a = clamp<float>(vaAlpha * 255.0f,0,255);
 					auto & trs = r.getTransform();
 					
@@ -233,7 +234,6 @@ void Game::update(double dt) {
 			if (ImGui::Selectable("Alpha", selected = (vaRs.blendMode == sf::BlendAlpha)))
 				vaRs.blendMode = sf::BlendAlpha;
 			if (selected) ImGui::SetItemDefaultFocus();
-
 			if (ImGui::Selectable("Add", selected = (vaRs.blendMode == sf::BlendAdd)))
 				vaRs.blendMode = sf::BlendAdd;
 			if (selected) ImGui::SetItemDefaultFocus();
@@ -247,6 +247,79 @@ void Game::update(double dt) {
 		}
 		ImGui::Unindent();
 		ImGui::PopID();
+	}
+
+	if (ImGui::CollapsingHeader("CPU Test")) {
+		static double timeToCpuN0	= 100.0;
+		static double timeToCpuNN	= 100.0;
+		static double timeToCpuAAA	= 100.0;
+		static double refTime		= 100.0;
+
+		if (ImGui::Button("test direct call")) {
+			VirtualCallTest::flushCache();
+			auto t0 = Lib::getTimeStamp();
+			AA* a = new AA();
+			for (int i = 0; i < 1000000 + Dice::roll(0, 5); i++)
+				a->doSomething();
+			auto t1 = Lib::getTimeStamp();
+
+			if (refTime > t1 - t0)
+				refTime = t1 - t0;
+		}
+
+		if (ImGui::Button("test virtual call n0")) {
+			VirtualCallTest::flushCache();
+			auto t0 = Lib::getTimeStamp();
+			A* a = new A();
+
+			for (int i = 0; i < 1000000 + Dice::roll(0, 5); i++)
+				a->doSomething();
+			auto t1 = Lib::getTimeStamp();
+
+			if(timeToCpuN0> t1 - t0)
+				timeToCpuN0 = t1 - t0;
+		}
+
+		if (ImGui::Button("test virtual call NN")) {
+			VirtualCallTest::flushCache();
+			auto t0 = Lib::getTimeStamp();
+			H* a = new H();
+
+			for (int i = 0; i < 1000000 + Dice::roll(0, 5); i++)
+				a->doSomething();
+			auto t1 = Lib::getTimeStamp();
+
+			if(timeToCpuNN> t1 - t0)
+				timeToCpuNN = t1 - t0;
+		}
+
+		if (ImGui::Button("test inline call NN")) {
+			VirtualCallTest::flushCache();
+			auto t0 = Lib::getTimeStamp();
+			AAA* a = new AAA();
+			for (int i = 0; i < 1000000 + Dice::roll(0, 5); i++)
+				a->doSomething();
+			auto t1 = Lib::getTimeStamp();
+			if(timeToCpuAAA> t1-t0)
+				timeToCpuAAA = t1 - t0;
+		}
+
+		
+		if (refTime > 0.0 && refTime < 99) {
+			ImGui::LabelText("refTime ", "%0.9f s", refTime);
+		}
+		if (timeToCpuN0 > 0.0 && timeToCpuN0 < 99) {
+			//ImGui::LabelText("Timing N0", "%0.9f s", timeToCpuN0);
+			ImGui::LabelText("N0 To Ref time", "%0.12f s", (timeToCpuN0 - refTime));
+		}
+		if (timeToCpuNN > 0.0 && timeToCpuNN < 99) {
+			//ImGui::LabelText("Timing NN", "%0.9f s", timeToCpuNN);
+			ImGui::LabelText("NN To Ref time", "%0.12f s", (timeToCpuNN - refTime));
+		}
+		if (timeToCpuAAA > 0.0 && timeToCpuAAA < 99) {
+			//ImGui::LabelText("Timing N AAA", "%0.9f s", timeToCpuAAA);
+			ImGui::LabelText("AAA To Ref time", "%0.12f s", (timeToCpuAAA - refTime));
+		}
 	}
 }
 
