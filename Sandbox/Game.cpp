@@ -186,7 +186,12 @@ void Game::update(double dt) {
 		ImGui::Indent();
 		if (!s_RectVAFlood && ImGui::Button("Start")) {
 			s_RectVAFlood = true;
-			vaRs.blendMode = sf::BlendAlpha;
+
+			static bool once = false;
+			if (!once) {
+				vaRs.blendMode = sf::BlendAlpha;
+				once = true;
+			}
 			va.setPrimitiveType(sf::PrimitiveType::Quads);
 		}
 
