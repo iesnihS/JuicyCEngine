@@ -23,6 +23,15 @@
 #include <algorithm>
 #include <functional>
 
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+extern "C" {
+	// Force the use of the NVidia-graphics card on notebooks with both an IGP and a GPU
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	// AMD equivalent to the above
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
 using namespace std;
 using namespace sf;
 
