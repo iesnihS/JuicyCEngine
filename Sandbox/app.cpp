@@ -147,7 +147,7 @@ int main()
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);
-			ImGui::SliderFloat4("bloomMul", &bloomMul.x, 0, 1.0);
+			ImGui::ColorEdit4("bloomMul", &bloomMul.x);
 		}
 		g.im();
 

@@ -17,6 +17,16 @@ vec4 bloom(vec4 color){
 	return color;
 }
 
+// rgb & alpha separé
+// MADD ADDM => 1 instruction mul et un add ( et vice versa )
+
+// (c0 * c1 + c ) => 1 instr
+// (c0 * c1) + c => 2 instr 
+// poid * mat + ... 
+// 
+
+
+
 void main() {
     vec2 coord = glTexCoord.xy;
 	vec4 pixel_color = bloom( texture2D(texture, coord) * glColor );//4

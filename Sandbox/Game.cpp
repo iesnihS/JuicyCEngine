@@ -180,6 +180,8 @@ void Game::update(double dt) {
 		ImGui::PopID();
 	}
 
+	
+
 	if (ImGui::CollapsingHeader("Flood Rect - Vertex Array Method")) {
 		int start;
 		ImGui::PushID(&start);
@@ -203,6 +205,7 @@ void Game::update(double dt) {
 
 			ImGui::LabelText("Nb VA Rects", format.c_str(), size);
 			if (isTick && dt < (1.0 / 60)) {
+
 				for (int i = 0; i < 250000; ++i) 
 				{
 					sf::RectangleShape r(Vector2f(vaSize, vaSize));
@@ -219,6 +222,7 @@ void Game::update(double dt) {
 					sf::Vertex v3(trs * r.getPoint(3), c);
 					
 					va.append(v0);
+
 					va.append(v1);
 					va.append(v2);
 					va.append(v3);
