@@ -197,16 +197,19 @@ void Game::update(double dt) {
 			va.setPrimitiveType(sf::PrimitiveType::Quads);
 		}
 
+		static int nbSurfaceStride = 250000;
+		ImGui::DragInt("nbSurfaceStride", &nbSurfaceStride, 10000, 0, 400000);
 		if (s_RectVAFlood) {
 			std::string format = "%0.1f";
 			double size = va.getVertexCount()/4.0;
 			if (size > 1024) { size /= 1000.0; format = "%0.1f k"; }
 			if (size > 1024) { size /= 1000.0; format = "%0.1f m"; }
 
+			
 			ImGui::LabelText("Nb VA Rects", format.c_str(), size);
 			if (isTick && dt < (1.0 / 60)) {
 
-				for (int i = 0; i < 250000; ++i) 
+				for (int i = 0; i < nbSurfaceStride; ++i)
 				{
 					sf::RectangleShape r(Vector2f(vaSize, vaSize));
 					r.rotate(Dice::angleDeg());
