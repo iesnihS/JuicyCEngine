@@ -35,7 +35,7 @@ using namespace sf;
 static HotReloadShader * bloomShader = nullptr;
 static HotReloadShader * blurShader = nullptr;
 
-static std::array<double, 16> dts;
+static std::array<double, 60> dts;
 static int curDts = 0;
 
 int main()
@@ -67,7 +67,6 @@ int main()
 
 	View v = window.getDefaultView();
 	Vector2f viewCenter = v.getCenter();
-	float shakeStrength = 0.0;
 
 	sf::Clock timer;
 
@@ -92,7 +91,7 @@ int main()
 	destFinal->clear(sf::Color(0, 0, 0, 0));	
 
 	float bloomWidth = 12;
-	sf::Glsl::Vec4 bloomMul(1,1,1,0.8);
+	sf::Glsl::Vec4 bloomMul(1,1,1,0.8f);
 
     while (window.isOpen())
     {
@@ -119,17 +118,13 @@ int main()
 				destFinal->create(window.getSize().x, window.getSize().y);
 				destFinal->clear(sf::Color(0, 0, 0, 0));
 
-				v = sf::View(Vector2f(nsz.x * 0.5f, nsz.y * 0.5f), Vector2f(nsz.x, nsz.y));
+				v = sf::View(Vector2f(nsz.x * 0.5f, nsz.y * 0.5f), Vector2f((float)nsz.x, (float)nsz.y));
 				viewCenter = v.getCenter();
 			}
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
-			shakeStrength = 15.0;
-		}
-
 		//don't use imgui before this;
-		ImGui::SFML::Update(window, sf::seconds(dt));
+		ImGui::SFML::Update(window, sf::seconds((float)dt));
 
         g.update(dt);
 		
@@ -154,14 +149,7 @@ int main()
 		}
         window.clear();
 
-		window.setView(v);
-
-		Vector2f n(viewCenter);//viewCenter.x = shakeStrength * 10;
-		n.x += cos(shakeStrength * 1 * Dice::randSign() );
-		n.y += sin(-shakeStrength * 1 * Dice::randSign());
-		v.setCenter(n);
-
-		window.setView(v);
+		window.setView(v);//keep view up to date in case we want to do something with like... you know what.
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);//55 is max acceptable kernel size for constants, otherwise we should use a texture
@@ -182,13 +170,10 @@ int main()
 		ImGui::SFML::Render(window);
         window.display();
 		
-		shakeStrength *= 0.85;
-		if (shakeStrength <= 0.01) 
-			shakeStrength = 0.0;
 
 		frameEnd = Lib::getTimeStamp();
 		
-		fpsCounter.setString("FPS:"+std::to_string(1.0 / dt));
+		fpsCounter.setString("FPS: "+std::to_string(1.0 / dt));
 		
 		ImGui::EndFrame();
 		

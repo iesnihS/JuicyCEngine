@@ -6,6 +6,8 @@
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
 
+#include "sys.hpp"
+
 #include "Particle.hpp"
 #include "ParticleMan.hpp"
 
@@ -42,7 +44,6 @@ public:
 
 	void draw(sf::RenderWindow& win);
 
-	void onFileTick();
 	bool isWall(int cx, int cy);
 	void im();
 };
