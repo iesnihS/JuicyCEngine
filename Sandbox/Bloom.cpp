@@ -1,6 +1,7 @@
 #include "Bloom.hpp"
 using namespace std;
 
+//not a professionnal bloom ( go for pyramid ) it is fast though because only two passes with small kernels
 void Bloom::m_gaussian_kernel(float* dest, int size, float radius)
 {
 	float* k;
@@ -130,4 +131,5 @@ void Bloom::render(
 	sp.setColor(c);
 
 	window.draw(sp, rs);
+	//window.draw(sp);
 }

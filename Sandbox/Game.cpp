@@ -116,6 +116,7 @@ void Game::pollInput(double dt) {
 }
 
 static bool s_RectVAFlood = false;
+static bool s_RectVATick = true;
 static sf::VertexArray va;
 static RenderStates vaRs;
 static float		vaAlpha = 1.0;
@@ -203,13 +204,16 @@ void Game::update(double dt) {
 		static int nbSurfaceStride = 250000;
 		ImGui::DragInt("nbSurfaceStride", &nbSurfaceStride, 10000, 0, 400000);
 		if (s_RectVAFlood) {
+			ImGui::Checkbox( "Tick", &s_RectVATick);
 			std::string format = "%0.1f";
 			double size = va.getVertexCount()/4.0;
 			if (size > 1024) { size /= 1000.0; format = "%0.1f k"; }
 			if (size > 1024) { size /= 1000.0; format = "%0.1f m"; }
-
 			
 			ImGui::LabelText("Nb VA Rects", format.c_str(), size);
+			if (!s_RectVATick)
+				isTick = false;
+
 			if (isTick && dt < (1.0 / 60)) {
 
 				for (int i = 0; i < nbSurfaceStride; ++i)
@@ -233,6 +237,12 @@ void Game::update(double dt) {
 					va.append(v2);
 					va.append(v3);
 				}
+			}
+
+			if (ImGui::Button("Remove batch")) {
+				if (va.getVertexCount())
+					va.resize(va.getVertexCount() - nbSurfaceStride * 4);
+				s_RectVATick = false;
 			}
 			if (ImGui::Button("Reset")) {
 				va.clear();

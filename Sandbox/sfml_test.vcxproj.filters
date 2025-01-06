@@ -83,9 +83,6 @@
     <ClInclude Include="libs\imgui-sfml\imgui-SFML_export.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="eastl_config.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="Bloom.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
