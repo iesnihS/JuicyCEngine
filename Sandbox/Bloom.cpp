@@ -1,4 +1,5 @@
 #include "Bloom.hpp"
+using namespace std;
 
 void Bloom::m_gaussian_kernel(float* dest, int size, float radius)
 {
@@ -54,9 +55,9 @@ void Bloom::getKernelOffsets(float dx, vector<float>& _kernel, vector<sf::Glsl::
 
 void Bloom::blur(float dx, sf::Texture* source, sf::Shader* _blurShader, sf::RenderTexture* destX, sf::RenderTexture* destFinal) {
 
-	eastl::vector<float> kernelX;
-	eastl::vector<float> kernelY;
-	eastl::vector<sf::Glsl::Vec2> offsets;
+	vector<float> kernelX;
+	vector<float> kernelY;
+	vector<sf::Glsl::Vec2> offsets;
 	source->setSmooth(true);
 	destX->setSmooth(true);
 	destFinal->setSmooth(true);

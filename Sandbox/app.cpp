@@ -1,7 +1,8 @@
-// sfml_test.cpp : Ce fichier contient la fonction 'main'. L'exécution du programme commence et se termine à cet endroit.
-//
-
-#include <iostream> // inclut un entete/header appelé iostream
+#include <iostream> 
+#include <array>
+#include <numeric>
+#include <algorithm>
+#include <functional>
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -18,10 +19,6 @@
 #include "HotReloadShader.hpp"
 #include "app.h"
 
-#include <array>
-#include <numeric>
-#include <algorithm>
-#include <functional>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -146,7 +143,7 @@ int main()
 		window.setView(v);
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
-			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);
+			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 110);
 			ImGui::ColorEdit4("bloomMul", &bloomMul.x);
 		}
 		g.im();

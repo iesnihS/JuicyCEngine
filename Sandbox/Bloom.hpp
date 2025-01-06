@@ -1,13 +1,11 @@
 #pragma once
 
-#include <EASTL/vector.h>
 #include <SFML/Graphics.hpp>
 
-using namespace eastl;
 namespace Bloom {
 
 	void m_gaussian_kernel(float* dest, int size, float radius);
-	void getKernelOffsets(float dx, vector<float>& _kernel, vector<sf::Glsl::Vec2>& _offsets, float offsetScale = 1.0f, bool isHoriz = true);
+	void getKernelOffsets(float dx, std::vector<float>& _kernel, std::vector<sf::Glsl::Vec2>& _offsets, float offsetScale = 1.0f, bool isHoriz = true);
 	void blur(float dx, sf::Texture* source, sf::Shader* _blurShader, sf::RenderTexture* destX, sf::RenderTexture* destFinal);
 	void render(
 		sf::RenderWindow& window,

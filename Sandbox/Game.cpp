@@ -1,9 +1,12 @@
-#include "C.hpp"
-#include "Game.hpp"
+
 #include <imgui.h>
 #include <array>
+#include <vector>
+
+#include "C.hpp"
+#include "Game.hpp"
+
 #include "HotReloadShader.hpp"
-#include "eastl_config.hpp"
 #include "VirtualCallTest.hpp"
 
 #ifdef _MSC_VER
@@ -119,7 +122,7 @@ static float		vaAlpha = 1.0;
 static int			vaSize = 13;
 
 static bool s_RectShapeFlood = false;
-static eastl::vector<sf::RectangleShape> rects;
+static std::vector<sf::RectangleShape> rects;
 
 int blendModeIndex(sf::BlendMode bm) {
 	if (bm == sf::BlendAlpha) return 0;
