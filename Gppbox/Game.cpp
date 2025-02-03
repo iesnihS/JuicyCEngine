@@ -41,6 +41,9 @@ Game::Game(sf::RenderWindow * win) {
 	walls.push_back(Vector2i(cols >>2, lastLine - 4));
 	walls.push_back(Vector2i((cols >> 2) + 1, lastLine - 4));
 	cacheWalls();
+
+	Entity chara = Entity();
+	allEntities.push_back(&chara);
 }
 
 void Game::cacheWalls()
@@ -144,6 +147,10 @@ void Game::update(double dt) {
 	for (sf::RectangleShape& r : rects) 
 		win.draw(r);
 	
+	for(int i =0; i < allEntities.size(); i++)
+	{
+		allEntities[i]->Draw(&win);
+	}
 
 	afterParts.draw(win);
 }
