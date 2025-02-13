@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include <array>
 #include <vector>
-
+#include "Entity.hpp"
 #include "C.hpp"
 #include "Game.hpp"
 
@@ -11,8 +11,12 @@
 
 static int cols = 1280 / C::GRID_SIZE;
 static int lastLine = 720 / C::GRID_SIZE - 1;
+Game* Game::instance = 0;
+
 
 Game::Game(sf::RenderWindow * win) {
+
+	instance = this;
 	this->win = win;
 	bg = sf::RectangleShape(Vector2f((float)win->getSize().x, (float)win->getSize().y));
 
@@ -41,9 +45,20 @@ Game::Game(sf::RenderWindow * win) {
 	walls.push_back(Vector2i(cols >>2, lastLine - 4));
 	walls.push_back(Vector2i((cols >> 2) + 1, lastLine - 4));
 	cacheWalls();
+}
 
-	Entity chara = Entity();
-	allEntities.push_back(&chara);
+void Game::initMainChar()
+{
+	sf::RectangleShape* sprite = new sf::RectangleShape({ C::GRID_SIZE, C::GRID_SIZE * 2 });
+	sprite->setFillColor(sf::Color::Cyan);
+	sprite->setOutlineColor(sf::Color::Red);
+	sprite->setOutlineThickness(2);
+	sprite->setOrigin({ C::GRID_SIZE * 0.5f, C::GRID_SIZE * 2 });
+	Entity* e = new Entity(sprite);
+	e->setCooGrid(3, int(C::RES_X / C::GRID_SIZE) - 2);
+	e->ry = 0.99f;
+	e->syncPos();
+	ents.push_back(e);
 }
 
 void Game::cacheWalls()
@@ -146,11 +161,6 @@ void Game::update(double dt) {
 
 	for (sf::RectangleShape& r : rects) 
 		win.draw(r);
-	
-	for(int i =0; i < allEntities.size(); i++)
-	{
-		allEntities[i]->Draw(&win);
-	}
 
 	afterParts.draw(win);
 }

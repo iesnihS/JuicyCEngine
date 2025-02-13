@@ -10,11 +10,10 @@
 
 #include "Particle.hpp"
 #include "ParticleMan.hpp"
-#include "Entity.hpp"
 
 
 using namespace sf;
-
+class Entity;
 class HotReloadShader;
 class Game {
 public:
@@ -30,12 +29,16 @@ public:
 	std::vector<sf::Vector2i>		walls;
 	std::vector<sf::RectangleShape> wallSprites;
 
+	std::vector<Entity*> ents;
+
 	ParticleMan beforeParts;
 	ParticleMan afterParts;
 
-	vector<Entity*> allEntities;
+	static Game* instance;
 
 	Game(sf::RenderWindow * win);
+
+	void initMainChar();
 
 	void cacheWalls();
 
@@ -43,6 +46,8 @@ public:
 	bool wasPressed = false;
 	void pollInput(double dt);
 	void onSpacePressed();
+	
+	bool hasCollision(float gridx, float gridy);
 
 	void update(double dt);
 

@@ -1,17 +1,18 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+
 class Entity
 {
 public :
-	sf::Shape* shape = 0; //nullptr
+	sf::Shape* sptr = 0; //nullptr
 
 	//Cell coord
 	int cx = 0;
 	int cy = 0;
 
 	float rx = 0.5f;
-	float ry = 0.5f;
+	float ry = 0.0f;
 
 	//Deplacement
 	float dx = 0.f; 
@@ -26,6 +27,7 @@ public :
 	bool jumping = false;
 
 	Entity(sf::Shape* shape);
+
 	void update(double deltaTime);
 	void setCooPixel(int px, int py);
 	void setCooGrid(float coox, float cooy);

@@ -1,21 +1,38 @@
+#include <imgui.h>
 #include "Entity.hpp"
 #include "C.hpp"
+#include "Game.hpp"
 
-Entity::Entity()
+Entity::Entity(Shape* shape) : sptr(shape)
 {
 	
 }
 
-void Entity::Init()
+void Entity::update(double dt)
 {
-	sf::CircleShape circle = sf::CircleShape(50);
-	circle.setFillColor(sf::Color(100, 250, 250));
-	this->sprite = &circle;
+	double rate = 1.0 / dt;
+	double dfr = 60.0 / rate;
+
+	dy += gravity * dt;
+
+	dx = dx * pow(frx, dfr);
+	dy = dy * pow(fry, dfr);
+
+	rx += dx * dt;
+	ry += dy * dt;
+
+	Game* g = Game::instance;
+
+	if(rx > 1.0f)
+	{
+		
+	}
 }
 
-void Entity::Draw(sf::RenderWindow* win)
+void Entity::setCooGrid(float coox, float cooy)
 {
-	sf::Shape* sprite = this->sprite;
+}
 
-	win->draw(*sprite);
+void Entity::syncPos()
+{
 }
