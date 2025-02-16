@@ -11,6 +11,7 @@ public :
 	int cx = 0;
 	int cy = 0;
 
+	//Cellratio
 	float rx = 0.5f;
 	float ry = 0.0f;
 
@@ -29,14 +30,16 @@ public :
 	Entity(sf::Shape* shape);
 
 	void update(double deltaTime);
+
+	//Convert Pixel coord to Cell coord
 	void setCooPixel(int px, int py);
 	void setCooGrid(float coox, float cooy);
 	void syncPos();
 	void draw(sf::RenderWindow& win);
-	void im();
+	bool im();
 
 	void setJumping(bool onOff);
 
-	sf::Vector2i getPosPixel;
+	sf::Vector2i getPosPixel();
 };
 

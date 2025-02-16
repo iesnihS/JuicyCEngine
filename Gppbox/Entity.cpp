@@ -23,16 +23,59 @@ void Entity::update(double dt)
 
 	Game* g = Game::instance;
 
-	if(rx > 1.0f)
-	{
-		
-	}
+	syncPos();
 }
 
 void Entity::setCooGrid(float coox, float cooy)
 {
 }
+void Entity::setCooPixel(int px, int py)
+{
+	cx = px / C::CELL_SIZE;
+	cy = py / C::CELL_SIZE;
+
+	rx = (px - (cx * C::CELL_SIZE)) / (float)C::CELL_SIZE;
+	ry = (py - (cy * C::CELL_SIZE)) / (float)C::CELL_SIZE;
+
+	syncPos();
+}
 
 void Entity::syncPos()
 {
+	sf::Vector2f pos = { (cx + rx) * C::CELL_SIZE,(cy + ry) * C::CELL_SIZE };
+	sptr->setPosition(pos);
+}
+
+void Entity::draw(sf::RenderWindow& win)
+{
+	if (sptr)
+		win.draw(*sptr);
+}
+
+bool Entity::im()
+{
+	using namespace ImGui;
+
+	bool change = false;
+	Value("cx", cx);
+	Value("cy", cy);
+
+	Value("rx", rx);
+	Value("ry", ry);
+
+	Vector2i ppos = getPosPixel();
+
+	change |= DragInt2("px,py", &ppos.x, 1, -2000, 2000);
+	
+	if (change)
+		setCooPixel(ppos.x, ppos.y);
+	
+	return change;
+}
+
+sf::Vector2i Entity::getPosPixel()
+{
+	int px = (cx + rx) * C::CELL_SIZE;
+	int py = (cy + ry) * C::CELL_SIZE;
+	return  { px,py };
 }
