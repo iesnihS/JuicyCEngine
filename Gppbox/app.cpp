@@ -18,6 +18,7 @@
 #include "Interp.hpp"
 #include "HotReloadShader.hpp"
 #include "app.h"
+#include "C.hpp"
 
 
 #define WIN32_LEAN_AND_MEAN
@@ -32,26 +33,25 @@ extern "C" {
 using namespace std;
 using namespace sf;
 
-static HotReloadShader * bloomShader = nullptr;
-static HotReloadShader * blurShader = nullptr;
+static HotReloadShader* bloomShader = nullptr;
+static HotReloadShader* blurShader = nullptr;
 
 static std::array<double, 60> dts;
 static int curDts = 0;
 
 int main()
 {
-    cout << "Hello World!\n";
-	
-    //sf::RenderWindow window(sf::VideoMode(1920, 1080,32), "SFML works!");
-    //sf::RenderWindow window(sf::VideoMode(800, 600,32), "SFML works!");
-    sf::RenderWindow window(sf::VideoMode(1280, 720,32), "SFML works!");
-	window.setVerticalSyncEnabled(false);
-    Font font;
+	sf::RenderWindow window(sf::VideoMode(C::RES_X, C::RES_Y, 32), "Juicy Game!");
+	//sf::RenderWindow window(sf::VideoMode(800, 600,32), "SFML works!");
+	//sf::RenderWindow window(sf::VideoMode(1280, 720,32), "SFML works!");
+	window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit(60);
+	Font font;
 
-    if (!font.loadFromFile("res/MAIAN.TTF")) {
-        cout << "ERROR NO FONT" << endl;
-        return 1;
-    }
+	if (!font.loadFromFile("res/MAIAN.TTF")) {
+		cout << "ERROR NO FONT" << endl;
+		return 1;
+	}
 
 	if (!sf::Shader::isAvailable())
 	{
@@ -61,7 +61,7 @@ int main()
 
 	ImGui::SFML::Init(window);
 
-    Game g(&window);
+	Game g(&window);
 
 	Vector2i winPos;
 
@@ -88,13 +88,13 @@ int main()
 
 	sf::RenderTexture* destFinal = new sf::RenderTexture();
 	destFinal->create(window.getSize().x, window.getSize().y);
-	destFinal->clear(sf::Color(0, 0, 0, 0));	
+	destFinal->clear(sf::Color(0, 0, 0, 0));
 
 	float bloomWidth = 12;
-	sf::Glsl::Vec4 bloomMul(1,1,1,0.8f);
+	sf::Glsl::Vec4 bloomMul(1, 1, 1, 0.8f);
 
-    while (window.isOpen())
-    {
+	while (window.isOpen())
+	{
 		double dt = frameEnd - frameStart;
 		frameStart = Lib::getTimeStamp();
 
@@ -102,7 +102,7 @@ int main()
 			dt = 0.00000001;
 		}
 
-        sf::Event event;
+		sf::Event event;
 		while (window.pollEvent(event))//sort un evenement de la liste pour le traiter
 		{
 			ImGui::SFML::ProcessEvent(event);
@@ -126,17 +126,18 @@ int main()
 		//don't use imgui before this;
 		ImGui::SFML::Update(window, sf::seconds((float)dt));
 
-        g.update(dt);
-		
+		g.update(dt);
+		g.UpdateBuild();
+
 		if (ImGui::CollapsingHeader("View")) {
 			auto sz = v.getSize();
 			ImGui::Value("size x", sz.x);
 			ImGui::Value("size y", sz.y);
 		}
-		if (ImGui::CollapsingHeader("App Stats", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::CollapsingHeader("App Stats")) {
 			//double df = (Lib::getTimeStamp() - frameStart);
 
-			double mdt = std::accumulate(dts.begin(),dts.end(),0.0) / dts.size();
+			double mdt = std::accumulate(dts.begin(), dts.end(), 0.0) / dts.size();
 			ImGui::LabelText("Update Time", "%0.6f", dt);
 			ImGui::LabelText("FPS", "%0.6f", 1.0 / dt);
 
@@ -147,17 +148,19 @@ int main()
 			ImGui::LabelText("Avg Update Time", "%0.6f", captureMdt);
 			ImGui::LabelText("Avg FPS", "%0.6f", 1.0 / captureMdt);
 		}
-        window.clear();
+		window.clear();
 
 		window.setView(v);//keep view up to date in case we want to do something with like... you know what.
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);//55 is max acceptable kernel size for constants, otherwise we should use a texture
 			ImGui::ColorEdit4("bloomMul", &bloomMul.x);
+			ImGui::ColorEdit4("bloomMul2", &bloomMul.x);
 		}
 		g.im();
 
-        g.draw(window);
+		g.draw(window);
+		g.DrawDebug();
 
 		window.draw(fpsCounter);
 
@@ -165,28 +168,28 @@ int main()
 		if (bloomShader) bloomShader->update(dt);
 
 		if (bloomWidth)
-			Bloom::render(window,winTex,destX,destFinal,&blurShader->sh,&bloomShader->sh, bloomWidth, bloomMul);
+			Bloom::render(window, winTex, destX, destFinal, &blurShader->sh, &bloomShader->sh, bloomWidth, bloomMul);
 
 		ImGui::SFML::Render(window);
-        window.display();
-		
+		window.display();
+
 
 		frameEnd = Lib::getTimeStamp();
-		
-		fpsCounter.setString("FPS: "+std::to_string(1.0 / dt));
-		
+
+		fpsCounter.setString("FPS: " + std::to_string(1.0 / dt));
+
 		ImGui::EndFrame();
-		
+
 		curDts++;
 		if (curDts >= dts.size()) {
 			curDts = 0;
 		}
 		dts[curDts] = dt;
-    }
+	}
 
 	ImGui::SFML::Shutdown();
 
-    return 0;
+	return 0;
 }
 
 // Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage

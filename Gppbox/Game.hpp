@@ -16,7 +16,11 @@ using namespace sf;
 class Entity;
 class HotReloadShader;
 class Game {
+private :
+	void DrawGrid(bool canDraw);
+	void DrawBuildIndicator(bool canDraw);
 public:
+	
 	sf::RenderWindow*				win = nullptr;
 
 	sf::RectangleShape				bg;
@@ -24,6 +28,9 @@ public:
 
 	sf::Texture						tex;
 
+	bool canDrawGrid = true;
+	bool canBuild = false;
+	float dtModifier = 1;
 	bool							closing = false;
 	
 	std::vector<sf::Vector2i>		walls;
@@ -55,4 +62,7 @@ public:
 
 	bool isWall(int cx, int cy);
 	void im();
+
+	void UpdateBuild();
+	void DrawDebug();
 };
