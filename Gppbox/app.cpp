@@ -133,6 +133,8 @@ int main()
 			auto sz = v.getSize();
 			ImGui::Value("size x", sz.x);
 			ImGui::Value("size y", sz.y);
+
+			ImGui::DragFloat("View Pos X", &viewCenter.x);
 		}
 		if (ImGui::CollapsingHeader("App Stats")) {
 			//double df = (Lib::getTimeStamp() - frameStart);
@@ -150,7 +152,9 @@ int main()
 		}
 		window.clear();
 
-		window.setView(v);//keep view up to date in case we want to do something with like... you know what.
+		//v.setCenter(viewCenter);
+		//window.setView(v);//keep view up to date in case we want to do something with like... you know what.
+		
 
 		if (ImGui::CollapsingHeader("Bloom Control")) {
 			ImGui::SliderFloat("bloomWidth", &bloomWidth, 0, 55);//55 is max acceptable kernel size for constants, otherwise we should use a texture
@@ -164,11 +168,13 @@ int main()
 
 		window.draw(fpsCounter);
 
+		
 		if (blurShader) blurShader->update(dt);
 		if (bloomShader) bloomShader->update(dt);
 
 		if (bloomWidth)
 			Bloom::render(window, winTex, destX, destFinal, &blurShader->sh, &bloomShader->sh, bloomWidth, bloomMul);
+
 
 		ImGui::SFML::Render(window);
 		window.display();

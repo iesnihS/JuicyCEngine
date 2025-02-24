@@ -18,6 +18,9 @@ Game::Game(sf::RenderWindow * win) {
 
 	instance = this;
 	this->win = win;
+
+	cam = Camera();
+
 	bg = sf::RectangleShape(Vector2f((float)win->getSize().x, (float)win->getSize().y));
 
 	bool isOk = tex.loadFromFile("res/bg_stars.png");
@@ -38,6 +41,8 @@ Game::Game(sf::RenderWindow * win) {
 	
 	cacheWalls();
 	initMainChar();
+
+	cam.SetFollowTarget(ents[0], { 0, -300.f });
 }
 
 void Game::initMainChar()
@@ -149,6 +154,7 @@ int blendModeIndex(sf::BlendMode bm) {
 };
 
 void Game::update(double dt) {
+	
 	dt *= dtModifier;
 	
 	pollInput(dt);
@@ -165,6 +171,8 @@ void Game::update(double dt) {
 
 	beforeParts.update(dt);
 	afterParts.update(dt);
+
+	cam.UpdateCamera(win);
 }
 
  void Game::draw(sf::RenderWindow & win) {
@@ -200,8 +208,9 @@ void Game::onSpacePressed() {
 }
 bool Game::hasCollision(float gridx, float gridy)
 { 
+	printf("gridx : %f\n", gridx);
 	for (auto& w : walls)
-		if ((w.x == int(gridx)) && (w.y == int(gridy)))
+		if ((w.x == floor(gridx)) && (w.y == floor(gridy)))
 			return true;
 
 	return false;
@@ -218,7 +227,7 @@ void Game::DrawGrid(bool canDraw)
 		lines.push_back({ sf::Vector2f(i*C::CELL_SIZE,0),color });
 		lines.push_back({ sf::Vector2f(i * C::CELL_SIZE,	C::RES_Y),color });
 	}
-	for (uint32_t i = 0; i < lastLine; i++)
+	for (uint32_t i = 0; i < lastLine + 2; i++)
 	{
 		lines.push_back({ sf::Vector2f(0,i * C::CELL_SIZE),color });
 		lines.push_back({ sf::Vector2f(C::RES_X,	i * C::CELL_SIZE),color });
@@ -229,11 +238,16 @@ void Game::DrawBuildIndicator(bool canDraw)
 {
 	if (!canDraw) return;
 
-	sf::Vector2i pos = sf::Mouse::getPosition(*win);
+	sf::Vector2i pos = GetMousePosition();
 	sf::RectangleShape rect(Vector2f(C::CELL_SIZE, C::CELL_SIZE));
-	rect.setPosition(floor(pos.x/C::CELL_SIZE)*C::CELL_SIZE, floor(pos.y / C::CELL_SIZE) * C::CELL_SIZE);
+	
+	rect.setPosition(floor(pos.x/ (float)C::CELL_SIZE)*C::CELL_SIZE, floor(pos.y / (float)C::CELL_SIZE) * C::CELL_SIZE);
 	rect.setFillColor(sf::Color(0x25cc1280));
 	win->draw(rect);
+}
+sf::Vector2i Game::GetMousePosition()
+{
+	return sf::Mouse::getPosition(*win) + Vector2i(win->getView().getCenter() - win->getView().getSize() / 2.f);
 }
 
 bool Game::isWall(int cx, int cy)
@@ -256,7 +270,7 @@ void Game::UpdateBuild()
 	if (!canBuild) return;
 	else if(Mouse::isButtonPressed(Mouse::Left))
 	{
-		sf::Vector2i pos = sf::Mouse::getPosition(*win);
+		sf::Vector2i pos = GetMousePosition();
 		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
 		for(uint32_t i = 0; i < walls.size(); i++ )
 		{
@@ -264,6 +278,20 @@ void Game::UpdateBuild()
 				return;
 		}
 		walls.push_back(newPos);
+		cacheWalls();
+	}
+	else if (Mouse::isButtonPressed(Mouse::Right))
+	{
+		sf::Vector2i pos = GetMousePosition();
+		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
+		for (uint32_t i = 0; i < walls.size(); i++)
+		{
+			if (walls[i].x == newPos.x && walls[i].y == newPos.y)
+			{
+				walls.erase(walls.begin() + i);
+				break;
+			}
+		}
 		cacheWalls();
 	}
 }

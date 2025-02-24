@@ -41,5 +41,6 @@ public :
 	void setJumping(bool onOff);
 
 	sf::Vector2i getPosPixel();
+	sf::Vector2f getPosPixelf();
 };
 

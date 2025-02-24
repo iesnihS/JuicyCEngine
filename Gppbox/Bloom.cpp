@@ -89,6 +89,7 @@ void Bloom::blur(float dx, sf::Texture* source, sf::Shader* _blurShader, sf::Ren
 		_blurShader->setUniform("samples", nbSamples);
 		for (int i = 0; i < nbSamples; i++)
 			offsets[i].y *= 1.0f / source->getSize().y;
+
 		_blurShader->setUniformArray("kernel", kernelY.data(), nbSamples);
 		_blurShader->setUniformArray("offsets", offsets.data(), nbSamples);
 
@@ -129,6 +130,9 @@ void Bloom::render(
 	sf::Color c = sp.getColor();
 	c.a = (int)(c.a * 0.8);
 	sp.setColor(c);
+
+	sf::Vector2f pos = window.getView().getCenter() - window.getView().getSize()/2.f;
+	sp.setPosition(pos);
 
 	window.draw(sp, rs);
 	//window.draw(sp);

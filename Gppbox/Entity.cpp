@@ -45,7 +45,7 @@ void Entity::update(double dt)
 		}
 	}
 	
-	printf("Collision au dessus : %s\n", g.hasCollision(cx + rx, cy + ry - 2) ? "true" : "false");
+	
 
 	if (jumping) {
 		if ((dy > 0)) {
@@ -63,7 +63,13 @@ void Entity::update(double dt)
 		}
 
 		if (dy < 0) {
-			while (ry < 0) {
+			if(g.hasCollision(cx + rx, cy + ry - 2))
+			{
+				ry -= dy * dt;
+				dy = 0;
+			}
+			while (ry < 0) 
+			{
 				ry++;
 				cy--;
 			}
@@ -151,6 +157,12 @@ sf::Vector2i Entity::getPosPixel()
 {
 	int px = (cx + rx) * C::CELL_SIZE;
 	int py = (cy + ry) * C::CELL_SIZE;
+	return  { px,py };
+}
+sf::Vector2f Entity::getPosPixelf()
+{
+	float px = (cx + rx) * C::CELL_SIZE;
+	float py = (cy + ry) * C::CELL_SIZE;
 	return  { px,py };
 }
 

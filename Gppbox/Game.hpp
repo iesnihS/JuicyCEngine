@@ -10,6 +10,7 @@
 
 #include "Particle.hpp"
 #include "ParticleMan.hpp"
+#include "Camera.h"
 
 
 using namespace sf;
@@ -19,6 +20,8 @@ class Game {
 private :
 	void DrawGrid(bool canDraw);
 	void DrawBuildIndicator(bool canDraw);
+	sf::Vector2i GetMousePosition();
+	Camera cam;
 public:
 	
 	sf::RenderWindow*				win = nullptr;
