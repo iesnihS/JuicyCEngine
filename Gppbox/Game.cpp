@@ -341,7 +341,7 @@ void Game::im()
 		if (TreeNodeEx("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
 			for (auto e : ents)
 			{
-					e->im();
+				e->im();
 			}
 			TreePop();
 		}

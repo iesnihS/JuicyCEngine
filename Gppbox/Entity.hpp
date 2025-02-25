@@ -15,7 +15,7 @@ class Entity
 {
 	private:
 		int bBuffer;
-		int maxSizeBB = 5; //bb == Bullet Buffer
+		int maxSizeBB = 1; //bb == Bullet Buffer
 		float shootRate = 0.5f; //seconds
 		float currentST = 0; //current time shot in seconds
 		std::queue<Entity*> bullets;

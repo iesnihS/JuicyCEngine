@@ -92,7 +92,7 @@ void Entity::ManagePhysic(double dt)
 	}
 	else if(eType == EntityType::Bullet)
 	{
-		dx += 1;
+		
 	}
 }
 
@@ -133,6 +133,8 @@ bool Entity::im()
 
 	bool chg = false;
 
+	Value("Entity Type", (int) eType);
+
 	Value("jumping", jumping);
 	Value("cx", cx);
 	Value("cy", cy);
@@ -146,7 +148,6 @@ bool Entity::im()
 		setCooPixel(pix.x, pix.y);
 
 	chg |= DragInt2("cx/cy", &cx, 1.0f, -2000, 2000);
-
 	sf::Vector2f coo = { cx + rx, cy + ry };
 	bool chgCoo = DragFloat2("coo grid x/y", &coo.x, 1.0f, -2000, 2000);
 	if (chgCoo)
@@ -199,12 +200,16 @@ void Entity::setJumping(bool onOff) {
 
 void Entity::ShootBullet(double dt)
 {
-	currentST -= dt;
-	if (currentST > 0 || bBuffer <= 0) return;
+	if (currentST > 0)
+	{
+		currentST -= dt;
+		return;
+	}
+	if (bBuffer <= 0) return;
 	
-	sf::RectangleShape* sprite = new sf::RectangleShape({ C::CELL_SIZE, C::CELL_SIZE});
+	sf::RectangleShape* sprite = new sf::RectangleShape({3, 3});
 	sprite->setFillColor(sf::Color::Magenta);
-	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 0.5});
+	sprite->setOrigin({ 3 * 0.5f, 3 * 0.5});
 	Entity* e = new Entity(sprite, EntityType::Bullet);
 	
 	
@@ -212,6 +217,8 @@ void Entity::ShootBullet(double dt)
 	e->cx = cx;
 	e->cy = cy;
 	e->rx = rx;
+	e->frx = 1;
+	e->dx = 50;
 	e->syncPos();
 
 	Game& g = *Game::instance;
