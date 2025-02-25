@@ -1,46 +1,70 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <queue>
+
+enum class EntityType 
+{
+	None,
+	Player,
+	Bullet,
+	Enemy
+};
 
 class Entity
 {
-public :
-	sf::Shape* sptr = 0; //nullptr
+	private:
+		int bBuffer;
+		int maxSizeBB = 5; //bb == Bullet Buffer
+		float shootRate = 0.5f; //seconds
+		float currentST = 0; //current time shot in seconds
+		std::queue<Entity*> bullets;
+		
+	public :
+		EntityType eType = EntityType::Enemy;
+		sf::Shape* sptr = 0; //nullptr
 
-	//Cell coord
-	int cx = 0;
-	int cy = 0;
 
-	//Cellratio
-	float rx = 0.5f;
-	float ry = 0.0f;
+		//Cell coord
+		int cx = 0;
+		int cy = 0;
 
-	//Deplacement
-	float dx = 0.f; 
-	float dy = 0.f;
+		//Cellratio
+		float rx = 0.5f;
+		float ry = 0.0f;
 
-	float gravity = 0.f;
+		//Deplacement
+		float dx = 0.f; 
+		float dy = 0.f;
 
-	//Friction
-	float frx = 0.88f;
-	float fry = 1.0f;
+		float gravity = 0.f;
 
-	bool jumping = false;
+		//Friction
+		float frx = 0.88f;
+		float fry = 1.0f;
 
-	Entity(sf::Shape* shape);
+		sf::Vector2f dv = sf::Vector2f::Vector2(0, 0); //Desire Velocity
 
-	void update(double deltaTime);
+		bool jumping = false;
 
-	//Convert Pixel coord to Cell coord
-	void setCooPixel(int px, int py);
-	void setCooGrid(float coox, float cooy);
-	void syncPos();
-	void draw(sf::RenderWindow& win);
-	bool im();
+		Entity(sf::Shape* shape, EntityType t);
 
-	void setJumping(bool onOff);
+		void update(double deltaTime);
 
-	sf::Vector2i getPosPixel();
-	sf::Vector2f getPosPixelf();
+		//Convert Pixel coord to Cell coord
+		void setCooPixel(int px, int py);
+		void setCooGrid(float coox, float cooy);
+		void syncPos();
+		void draw(sf::RenderWindow& win);
+		bool im();
+
+		void setJumping(bool onOff);
+		void ManagePhysic(double dt);
+		void AddBulletBuffer();
+
+		sf::Vector2i getPosPixel();
+		sf::Vector2f getPosPixelf();
+
+		void ShootBullet(double dt);
 };
 

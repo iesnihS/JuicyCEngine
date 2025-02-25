@@ -3,9 +3,9 @@
 #include "C.hpp"
 #include "Game.hpp"
 
-Entity::Entity(Shape* shape) : sptr(shape)
+Entity::Entity(Shape* shape, EntityType t) : sptr(shape), eType(t)
 {
-	
+	currentST = shootRate;
 }
 
 void Entity::update(double dt)
@@ -21,64 +21,79 @@ void Entity::update(double dt)
 	rx += dx * dt;
 	ry += dy * dt;
 
+	
+	ManagePhysic(dt);
+
+	ShootBullet(dt);
+
+	syncPos();
+}
+
+void Entity::ManagePhysic(double dt)
+{
 	Game& g = *Game::instance;
-	if (rx+0.5f > 1.0f) 
+	if(eType == EntityType::Player)
 	{
-		if (!g.hasCollision(cx + rx + 0.5f, cy + ry-0.5f) && !g.hasCollision(cx + rx + 0.5f, cy + ry - 1.5f)) {
-			rx--;
-			cx++;
-		}
-		else {
-			rx -= dx * dt;
-			dx = 0;
-		}
-
-	}
-	if (rx -0.5 < 0) {
-		if (!g.hasCollision(cx + rx - 0.5, cy + ry - 0.5f) && !g.hasCollision(cx + rx - 0.5f, cy + ry - 1.5f)) {
-			rx++;
-			cx--;
-		}
-		else {
-			rx -= dx * dt;
-			dx = 0;
-		}
-	}
-	
-	
-
-	if (jumping) {
-		if ((dy > 0)) {
-			if (g.hasCollision(cx + rx + 0.5f, cy + ry) || g.hasCollision(cx + rx - 0.5f, cy + ry)) {
-				setJumping(false);
-				ry = 0.99f;
-				dy = 0;
+		if (rx + 0.5f > 1.0f)
+		{
+			if (!g.hasCollision(cx + rx + 0.5f, cy + ry - 0.5f) && !g.hasCollision(cx + rx + 0.5f, cy + ry - 1.5f)) {
+				rx--;
+				cx++;
 			}
 			else {
-				if (ry > 1) {
-					ry--;
-					cy++;
+				rx -= dx * dt;
+				dx = 0;
+			}
+
+		}
+		if (rx - 0.5 < 0) {
+			if (!g.hasCollision(cx + rx - 0.5, cy + ry - 0.5f) && !g.hasCollision(cx + rx - 0.5f, cy + ry - 1.5f)) {
+				rx++;
+				cx--;
+			}
+			else {
+				rx -= dx * dt;
+				dx = 0;
+			}
+		}
+
+
+
+		if (jumping) {
+			if ((dy > 0)) {
+				if (g.hasCollision(cx + rx + 0.5f, cy + ry) || g.hasCollision(cx + rx - 0.5f, cy + ry)) {
+					setJumping(false);
+					ry = 0.99f;
+					dy = 0;
+				}
+				else {
+					if (ry > 1) {
+						ry--;
+						cy++;
+					}
+				}
+			}
+
+			if (dy < 0) {
+				if (g.hasCollision(cx + rx, cy + ry - 2))
+				{
+					ry -= dy * dt;
+					dy = 0;
+				}
+				while (ry < 0)
+				{
+					ry++;
+					cy--;
 				}
 			}
 		}
-
-		if (dy < 0) {
-			if(g.hasCollision(cx + rx, cy + ry - 2))
-			{
-				ry -= dy * dt;
-				dy = 0;
-			}
-			while (ry < 0) 
-			{
-				ry++;
-				cy--;
-			}
-		}
+		else if (!g.hasCollision(cx + rx + 0.5f, cy + ry + 0.1f) && !g.hasCollision(cx + rx - 0.5f, cy + ry + 0.1f))
+			setJumping(true);
 	}
-	else if(!g.hasCollision(cx + rx + 0.5f, cy + ry + 0.1f) && !g.hasCollision(cx + rx - 0.5f, cy + ry + 0.1f))
-		setJumping(true);
-
-	syncPos();
+	else if(eType == EntityType::Bullet)
+	{
+		dx += 1;
+	}
 }
 
 void Entity::setCooGrid(float coox, float cooy)
@@ -141,6 +156,8 @@ bool Entity::im()
 	chg |= DragFloat2("frx/fry", &frx, 0.001f, 0, 1);
 	chg |= DragFloat("gravity", &gravity, 0.001f, -2, 2);
 
+	Value("Time before shooting", currentST);
+
 	if (Button("Reset")) {
 		cx = 3;
 		cy = 54;
@@ -178,4 +195,34 @@ void Entity::setJumping(bool onOff) {
 		gravity = 0;
 		jumping = false;
 	}
+}
+
+void Entity::ShootBullet(double dt)
+{
+	currentST -= dt;
+	if (currentST > 0 || bBuffer <= 0) return;
+	
+	sf::RectangleShape* sprite = new sf::RectangleShape({ C::CELL_SIZE, C::CELL_SIZE});
+	sprite->setFillColor(sf::Color::Magenta);
+	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 0.5});
+	Entity* e = new Entity(sprite, EntityType::Bullet);
+	
+	
+	e->ry = ry;
+	e->cx = cx;
+	e->cy = cy;
+	e->rx = rx;
+	e->syncPos();
+
+	Game& g = *Game::instance;
+	g.ents.push_back(e);
+
+	bBuffer--;
+	currentST = shootRate;
+}
+
+void Entity::AddBulletBuffer()
+{
+	if(bBuffer < maxSizeBB)
+		bBuffer++;
 }

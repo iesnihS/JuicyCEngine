@@ -42,7 +42,7 @@ Game::Game(sf::RenderWindow * win) {
 	cacheWalls();
 	initMainChar();
 
-	cam.SetFollowTarget(ents[0], { 0, -300.f });
+	cam.SetFollowTarget(ents[0], { 0, -300.f }, {250.f, 0.f });
 }
 
 void Game::initMainChar()
@@ -52,7 +52,7 @@ void Game::initMainChar()
 	sprite->setOutlineColor(sf::Color::Red);
 	sprite->setOutlineThickness(2);
 	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
-	Entity* e = new Entity(sprite);
+	Entity* e = new Entity(sprite, EntityType::Player);
 
 	e->ry = 0.99f;
 	e->cx = 3;
@@ -96,6 +96,13 @@ void Game::pollInput(double dt) {
 	if (dt == 0)
 		return;
 
+	if (ents.size()) {
+		auto mainChar = ents[0];
+		if (mainChar) {
+			mainChar->dv = { 0,0 };
+		}
+	}
+
 	float lateralSpeed = 8.0;
 	float maxSpeed = 40.0;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
@@ -103,6 +110,7 @@ void Game::pollInput(double dt) {
 			auto mainChar = ents[0];
 			if (mainChar) {
 				mainChar->dx -= 5;
+				mainChar->dv.x += mainChar->dx;
 			}
 		}
 	}
@@ -112,6 +120,7 @@ void Game::pollInput(double dt) {
 			auto mainChar = ents[0];
 			if (mainChar) {
 				mainChar->dx += 5;
+				mainChar->dv.x += mainChar->dx;
 			}
 		}
 	}
@@ -122,6 +131,14 @@ void Game::pollInput(double dt) {
 			if (mainChar && !mainChar->jumping) {
 				mainChar->dy -= 40;
 				mainChar->setJumping(true);
+			}
+		}
+	}
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+		if (ents.size()) {
+			auto mainChar = ents[0];
+			if (mainChar) {
+				mainChar->AddBulletBuffer();
 			}
 		}
 	}
@@ -162,8 +179,9 @@ void Game::update(double dt) {
 
 	g_time += dt;
 
-	for(auto& e :ents)
+	for(int  i = ents.size()-1; i >= 0; i--)
 	{
+		Entity* e = ents[i];
 		e->update(dt);
 	}
 
@@ -207,8 +225,7 @@ void Game::onSpacePressed() {
 	
 }
 bool Game::hasCollision(float gridx, float gridy)
-{ 
-	printf("gridx : %f\n", gridx);
+{
 	for (auto& w : walls)
 		if ((w.x == floor(gridx)) && (w.y == floor(gridy)))
 			return true;
@@ -323,9 +340,16 @@ void Game::im()
 		}
 		if (TreeNodeEx("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
 			for (auto e : ents)
-				e->im();
+			{
+					e->im();
+			}
 			TreePop();
 		}
+		if (TreeNodeEx("Camera", 0)) {
+			cam.im();
+			TreePop();
+		}
+		
 	}
 	if (ImGui::CollapsingHeader("Level Design"))
 	{
