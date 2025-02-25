@@ -20,10 +20,10 @@ class Game {
 private :
 	void DrawGrid(bool canDraw);
 	void DrawBuildIndicator(bool canDraw);
-	sf::Vector2i GetMousePosition();
+	
 	Camera cam;
 public:
-	
+
 	sf::RenderWindow*				win = nullptr;
 
 	sf::RectangleShape				bg;
@@ -68,4 +68,6 @@ public:
 
 	void UpdateBuild();
 	void DrawDebug();
+	sf::Vector2i GetWMousePosition(); //World
+	sf::Vector2i GetSMousePosition(); //Screen
 };

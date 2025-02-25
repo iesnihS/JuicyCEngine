@@ -5,6 +5,8 @@
 
 Entity::Entity(Shape* shape, EntityType t) : sptr(shape), eType(t)
 {
+	if (t == EntityType::Player)
+		showIg = true;
 	currentST = shootRate;
 }
 
@@ -21,15 +23,16 @@ void Entity::update(double dt)
 	rx += dx * dt;
 	ry += dy * dt;
 
-	
-	ManagePhysic(dt);
-
+	if(ManagePhysic(dt))
+	{
+		Destroy();
+		return;
+	}
 	ShootBullet(dt);
-
 	syncPos();
 }
 
-void Entity::ManagePhysic(double dt)
+bool Entity::ManagePhysic(double dt)
 {
 	Game& g = *Game::instance;
 	if(eType == EntityType::Player)
@@ -92,7 +95,42 @@ void Entity::ManagePhysic(double dt)
 	}
 	else if(eType == EntityType::Bullet)
 	{
-		
+		float ratio = (size / (float)C::CELL_SIZE);
+		if (rx + ratio > 1.0f)
+		{
+			if (!g.hasCollision(cx + rx + ratio, cy + ry - 0.5f) && !g.hasCollision(cx + rx + ratio, cy + ry - 1.5f)) {
+				rx--;
+				cx++;
+			}
+			else {
+				dx = 0;
+				return true;
+			}
+		}
+		if (rx - ratio < 0)
+		{
+			if (!g.hasCollision(cx + rx - ratio, cy + ry - 0.5f) && !g.hasCollision(cx + rx - ratio, cy + ry - 1.5f)) {
+				rx--;
+				cx++;
+			}
+			else {
+				dx = 0;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void Entity::Destroy()
+{
+	Game& g = *Game::instance;
+	for (uint32_t i = 0; i < g.ents.size(); i++)
+	{
+		Entity* e = g.ents[i];
+		if (e != this) continue;
+		g.ents.erase(g.ents.begin() + i);
+		delete e;
 	}
 }
 
@@ -134,7 +172,12 @@ bool Entity::im()
 	bool chg = false;
 
 	Value("Entity Type", (int) eType);
-
+	if(Button(showIg ? "Hidden" : "Show"))
+	{
+		showIg = !showIg;
+	}
+	if (!showIg)
+		return chg;
 	Value("jumping", jumping);
 	Value("cx", cx);
 	Value("cy", cy);
@@ -177,6 +220,11 @@ sf::Vector2i Entity::getPosPixel()
 	int py = (cy + ry) * C::CELL_SIZE;
 	return  { px,py };
 }
+sf::Vector2i Entity::getSPosPixel()
+{
+	sf::RenderWindow* win = Game::instance->win;
+	return getPosPixel() -  Vector2i(win->getView().getCenter() - win->getView().getSize() / 2.f);
+}
 sf::Vector2f Entity::getPosPixelf()
 {
 	float px = (cx + rx) * C::CELL_SIZE;
@@ -207,21 +255,26 @@ void Entity::ShootBullet(double dt)
 	}
 	if (bBuffer <= 0) return;
 	
-	sf::RectangleShape* sprite = new sf::RectangleShape({3, 3});
+	Game& g = *Game::instance;
+
+	sf::RectangleShape* sprite = new sf::RectangleShape({6, 6});
 	sprite->setFillColor(sf::Color::Magenta);
-	sprite->setOrigin({ 3 * 0.5f, 3 * 0.5});
+	sprite->setOrigin({ 6 * 0.5f, 6 * 0.5});
 	Entity* e = new Entity(sprite, EntityType::Bullet);
 	
-	
+	bool mDir =  signbit((getSPosPixel() - g.GetSMousePosition()).x);
+
+	dx += mDir ? -kb : kb;
+
+	e->size = 6;
 	e->ry = ry;
 	e->cx = cx;
-	e->cy = cy;
+	e->cy = cy - 1;
 	e->rx = rx;
 	e->frx = 1;
-	e->dx = 50;
+	e->dx = mDir ? 50 : -50;
 	e->syncPos();
 
-	Game& g = *Game::instance;
 	g.ents.push_back(e);
 
 	bBuffer--;

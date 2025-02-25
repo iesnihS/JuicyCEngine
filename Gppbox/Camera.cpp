@@ -12,7 +12,7 @@ void Camera::SetFollowTarget(Entity* target, sf::Vector2f offset, sf::Vector2f d
 	this->dOffset = dOffset;
 }
 
-void Camera::UpdateCamera(sf::RenderWindow* win)
+void Camera::UpdateCamera(double dt,sf::RenderWindow* win)
 {
 	if (target == nullptr)
 		return;

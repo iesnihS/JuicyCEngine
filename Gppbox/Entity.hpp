@@ -16,14 +16,17 @@ class Entity
 	private:
 		int bBuffer;
 		int maxSizeBB = 1; //bb == Bullet Buffer
-		float shootRate = 0.5f; //seconds
+		float shootRate = 0.1f; //seconds
 		float currentST = 0; //current time shot in seconds
 		std::queue<Entity*> bullets;
+		bool showIg = false;
 		
 	public :
 		EntityType eType = EntityType::Enemy;
 		sf::Shape* sptr = 0; //nullptr
 
+		float kb = 1.6f;
+		int size = 5;
 
 		//Cell coord
 		int cx = 0;
@@ -59,12 +62,14 @@ class Entity
 		bool im();
 
 		void setJumping(bool onOff);
-		void ManagePhysic(double dt);
+		bool ManagePhysic(double dt);
 		void AddBulletBuffer();
 
 		sf::Vector2i getPosPixel();
+		sf::Vector2i getSPosPixel(); //ScreenPosPixel
 		sf::Vector2f getPosPixelf();
 
 		void ShootBullet(double dt);
+		void Destroy();
 };
 

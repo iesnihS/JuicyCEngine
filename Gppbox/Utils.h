@@ -26,3 +26,9 @@ float easeInCubic(float x)
 {
     return x*x*x;
 }
+
+template <typename T>
+int dotProduct(sf::Vector2<T> vect_A, sf::Vector2<T>  vect_B)
+{
+    return vect_A.x * vect_B.x + vect_A.y * vect_B.y;
+}

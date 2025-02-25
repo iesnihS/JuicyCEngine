@@ -2,10 +2,13 @@
 
 #include "Entity.hpp"
 #include "SFML/Window.hpp"
+#include "Tween.h"
 
 class Camera
 {
 	private:
+		Tween<float> cxTween; //current TweenX
+		Tween<float>cyTween; //current TweenX
 		Entity* target = nullptr;
 		sf::Vector2f offset;
 		sf::Vector2f dOffset; //displacement Offset
@@ -15,7 +18,7 @@ class Camera
 		float sCam = 0.02f; //Speed Cam;
 		Camera();
 		void SetFollowTarget(Entity* target, sf::Vector2f offset = sf::Vector2f::Vector2(0.f, 0.f), sf::Vector2f dOffset = sf::Vector2f::Vector2(0.f, 0.f));
-		void UpdateCamera(sf::RenderWindow *win);
+		void UpdateCamera(double dt, sf::RenderWindow *win);
 		bool im();
 };
 

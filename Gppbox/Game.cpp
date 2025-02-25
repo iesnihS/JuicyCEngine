@@ -5,14 +5,13 @@
 #include "Entity.hpp"
 #include "C.hpp"
 #include "Game.hpp"
-
+#include "Tween.h"
 #include "HotReloadShader.hpp"
 
 
 static int cols = C::RES_X / C::CELL_SIZE;
 static int lastLine = C::RES_Y / C::CELL_SIZE - 1;
 Game* Game::instance = 0;
-
 
 Game::Game(sf::RenderWindow * win) {
 
@@ -43,6 +42,7 @@ Game::Game(sf::RenderWindow * win) {
 	initMainChar();
 
 	cam.SetFollowTarget(ents[0], { 0, -300.f }, {250.f, 0.f });
+
 }
 
 void Game::initMainChar()
@@ -54,6 +54,7 @@ void Game::initMainChar()
 	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
 	Entity* e = new Entity(sprite, EntityType::Player);
 
+	e->size = C::CELL_SIZE;
 	e->ry = 0.99f;
 	e->cx = 3;
 	e->cy = 54;
@@ -93,7 +94,9 @@ static double g_tickTimer = 0.0;
 
 
 void Game::pollInput(double dt) {
-	if (dt == 0)
+
+	auto& io = ImGui::GetIO();
+	if (dt == 0 || io.WantCaptureMouse || io.WantCaptureKeyboard)
 		return;
 
 	if (ents.size()) {
@@ -171,11 +174,9 @@ int blendModeIndex(sf::BlendMode bm) {
 };
 
 void Game::update(double dt) {
-	
 	dt *= dtModifier;
 	
 	pollInput(dt);
-
 
 	g_time += dt;
 
@@ -190,7 +191,7 @@ void Game::update(double dt) {
 	beforeParts.update(dt);
 	afterParts.update(dt);
 
-	cam.UpdateCamera(win);
+	cam.UpdateCamera(dt, win);
 }
 
  void Game::draw(sf::RenderWindow & win) {
@@ -255,16 +256,20 @@ void Game::DrawBuildIndicator(bool canDraw)
 {
 	if (!canDraw) return;
 
-	sf::Vector2i pos = GetMousePosition();
+	sf::Vector2i pos = GetWMousePosition();
 	sf::RectangleShape rect(Vector2f(C::CELL_SIZE, C::CELL_SIZE));
 	
 	rect.setPosition(floor(pos.x/ (float)C::CELL_SIZE)*C::CELL_SIZE, floor(pos.y / (float)C::CELL_SIZE) * C::CELL_SIZE);
 	rect.setFillColor(sf::Color(0x25cc1280));
 	win->draw(rect);
 }
-sf::Vector2i Game::GetMousePosition()
+sf::Vector2i Game::GetWMousePosition()
 {
 	return sf::Mouse::getPosition(*win) + Vector2i(win->getView().getCenter() - win->getView().getSize() / 2.f);
+}
+sf::Vector2i Game::GetSMousePosition()
+{
+	return sf::Mouse::getPosition(*win);
 }
 
 bool Game::isWall(int cx, int cy)
@@ -287,7 +292,7 @@ void Game::UpdateBuild()
 	if (!canBuild) return;
 	else if(Mouse::isButtonPressed(Mouse::Left))
 	{
-		sf::Vector2i pos = GetMousePosition();
+		sf::Vector2i pos = GetWMousePosition();
 		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
 		for(uint32_t i = 0; i < walls.size(); i++ )
 		{
@@ -299,7 +304,7 @@ void Game::UpdateBuild()
 	}
 	else if (Mouse::isButtonPressed(Mouse::Right))
 	{
-		sf::Vector2i pos = GetMousePosition();
+		sf::Vector2i pos = GetWMousePosition();
 		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
 		for (uint32_t i = 0; i < walls.size(); i++)
 		{
@@ -316,7 +321,8 @@ void Game::UpdateBuild()
 void Game::im()
 {
 	using namespace ImGui;
-	int hre = 0;
+
+
 	if (ImGui::CollapsingHeader("Game", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen))
 	{
 
