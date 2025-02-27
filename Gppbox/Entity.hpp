@@ -27,6 +27,7 @@ class Entity
 		sf::Shape* sptr = 0; //nullptr
 
 		float kb = 1.6f;
+		float speed = 5;
 		int size = 5;
 
 		//Cell coord
@@ -52,7 +53,7 @@ class Entity
 		bool jumping = false;
 		bool isDestroy = false;
 
-		Entity(sf::Shape* shape, EntityType t);
+		Entity(sf::Shape* shape, EntityType t, float speed);
 
 		void update(double deltaTime);
 

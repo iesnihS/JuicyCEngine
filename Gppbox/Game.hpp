@@ -16,11 +16,19 @@
 using namespace sf;
 class Entity;
 class HotReloadShader;
+
+enum class BuildMode
+{
+	None,
+	Block,
+	Ennemy
+};
+
 class Game {
 private :
 	void DrawGrid(bool canDraw);
 	void DrawBuildIndicator(bool canDraw);
-	
+	BuildMode cbm = BuildMode::Block;
 	
 public:
 	Camera* cam;
@@ -50,6 +58,7 @@ public:
 	~Game();
 
 	void initMainChar();
+	void initEnnemy(int cx, int cy);
 
 	void cacheWalls();
 

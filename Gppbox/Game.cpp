@@ -52,7 +52,7 @@ void Game::initMainChar()
 	sprite->setOutlineColor(sf::Color::Red);
 	sprite->setOutlineThickness(2);
 	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
-	Entity* e = new Entity(sprite, EntityType::Player);
+	Entity* e = new Entity(sprite, EntityType::Player, 5);
 
 	e->size = C::CELL_SIZE;
 	e->ry = 0.99f;
@@ -61,6 +61,25 @@ void Game::initMainChar()
 	e->rx = 0.5f;
 	e->syncPos();
 	
+
+	ents.push_back(e);
+}
+
+void Game::initEnnemy(int cx, int cy)
+{
+	sf::RectangleShape* sprite = new sf::RectangleShape({ C::CELL_SIZE, C::CELL_SIZE * 2 });
+	sprite->setFillColor(sf::Color::Red);
+	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
+	Entity* e = new Entity(sprite, EntityType::Enemy, 5);
+
+	e->size = C::CELL_SIZE;
+	e->ry = 0.99f;
+	e->cx = cx;
+	e->cy = cy;
+	e->rx = 0.5f;
+	e->dv = { 1,0 };
+	e->syncPos();
+
 
 	ents.push_back(e);
 }
@@ -96,8 +115,15 @@ static double g_tickTimer = 0.0;
 void Game::pollInput(double dt) {
 
 	auto& io = ImGui::GetIO();
-	if (dt == 0 || io.WantCaptureMouse || io.WantCaptureKeyboard)
+	if (dt == 0 || io.WantCaptureMouse || io.WantCaptureKeyboard || canBuild)
+	{
+		if (ents.size()) {
+			auto mainChar = ents[0];
+			if (mainChar)
+				mainChar->dv.x = 0;
+		}
 		return;
+	}
 
 	if (ents.size()) {
 		auto mainChar = ents[0];
@@ -111,20 +137,16 @@ void Game::pollInput(double dt) {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
-			if (mainChar) {
-				mainChar->dx -= 5;
-				mainChar->dv.x += mainChar->dx;
-			}
+			if (mainChar) 
+				mainChar->dv.x =-1;
 		}
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
-			if (mainChar) {
-				mainChar->dx += 5;
-				mainChar->dv.x += mainChar->dx;
-			}
+			if (mainChar) 
+				mainChar->dv.x = 1;
 		}
 	}
 
@@ -261,10 +283,17 @@ void Game::DrawBuildIndicator(bool canDraw)
 	if (!canDraw) return;
 
 	sf::Vector2i pos = GetWMousePosition();
-	sf::RectangleShape rect(Vector2f(C::CELL_SIZE, C::CELL_SIZE));
+	sf::RectangleShape rect;
+	if(cbm == BuildMode::Ennemy)
+	{
+		rect = sf::RectangleShape(Vector2f(C::CELL_SIZE, C::CELL_SIZE * 2));
+		rect.setOrigin({ 0, C::CELL_SIZE });
+	}
+	else
+		rect = sf::RectangleShape(Vector2f(C::CELL_SIZE, C::CELL_SIZE));
 	
 	rect.setPosition(floor(pos.x/ (float)C::CELL_SIZE)*C::CELL_SIZE, floor(pos.y / (float)C::CELL_SIZE) * C::CELL_SIZE);
-	rect.setFillColor(sf::Color(0x25cc1280));
+	rect.setFillColor(Color(255, 255, 255, 255 / 3));
 	win->draw(rect);
 }
 sf::Vector2i Game::GetWMousePosition()
@@ -293,8 +322,10 @@ void Game::DrawDebug()
 
 void Game::UpdateBuild()
 {
-	if (!canBuild) return;
-	else if(Mouse::isButtonPressed(Mouse::Left))
+	auto& io = ImGui::GetIO();
+	if (!canBuild || io.WantCaptureMouse || io.WantCaptureKeyboard)
+		return;
+	else if(Mouse::isButtonPressed(Mouse::Left) && cbm == BuildMode::Block)
 	{
 		sf::Vector2i pos = GetWMousePosition();
 		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
@@ -306,19 +337,45 @@ void Game::UpdateBuild()
 		walls.push_back(newPos);
 		cacheWalls();
 	}
+	else if (Mouse::isButtonPressed(Mouse::Left) && cbm == BuildMode::Ennemy)
+	{
+		sf::Vector2i pos = GetWMousePosition();
+		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
+		for (uint32_t i = 0; i < ents.size(); i++)
+		{
+			if (ents[i]->cx == newPos.x && ents[i]->cy == newPos.y)
+				return;
+		}
+		initEnnemy(newPos.x, newPos.y);
+	}
 	else if (Mouse::isButtonPressed(Mouse::Right))
 	{
 		sf::Vector2i pos = GetWMousePosition();
 		auto newPos = Vector2i(floor(pos.x / 16.f), floor(pos.y / 16.f));
-		for (uint32_t i = 0; i < walls.size(); i++)
+		if(cbm == BuildMode::Block)
 		{
-			if (walls[i].x == newPos.x && walls[i].y == newPos.y)
+			for (uint32_t i = 0; i < walls.size(); i++)
 			{
-				walls.erase(walls.begin() + i);
-				break;
+				if (walls[i].x == newPos.x && walls[i].y == newPos.y)
+				{
+					walls.erase(walls.begin() + i);
+					break;
+				}
+			}
+			cacheWalls();
+		}else if(cbm == BuildMode::Ennemy)
+		{
+			for (uint32_t i = 0; i < ents.size(); i++)
+			{
+				Entity* e = ents[i];
+				if (e->eType == EntityType::Enemy && e->cx == newPos.x && (e->cy == newPos.y || e->cy == newPos.y + 1))
+				{
+					
+					ents.erase(ents.begin() + i);
+					delete e;
+				}
 			}
 		}
-		cacheWalls();
 	}
 }
 
@@ -348,7 +405,7 @@ void Game::im()
 			TreePop();
 
 		}
-		if (TreeNodeEx("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (TreeNodeEx("Entities")) {
 			for (auto e : ents)
 			{
 				e->im();
@@ -363,7 +420,17 @@ void Game::im()
 	}
 	if (ImGui::CollapsingHeader("Level Design"))
 	{
-		Checkbox("Can Build", &canBuild);
+		if(Checkbox("Can Build", &canBuild))
+		{
+			dtModifier = canBuild ? 0 : 1;
+		}
+
+		int i= (int)cbm;
+		const char* entityTypeNames[] = { "None", "Block", "Ennemy"};
+		if(ImGui::Combo("Build Mode", &i, entityTypeNames, 3))
+		{
+			cbm = (BuildMode) i;
+		}
 	}
 }
 Game::~Game()

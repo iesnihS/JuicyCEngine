@@ -3,7 +3,7 @@
 #include "C.hpp"
 #include "Game.hpp"
 
-Entity::Entity(Shape* shape, EntityType t) : sptr(shape), eType(t)
+Entity::Entity(Shape* shape, EntityType t, float s) : sptr(shape), eType(t), speed(s)
 {
 	if (t == EntityType::Player)
 		showIg = true;
@@ -14,6 +14,9 @@ void Entity::update(double dt)
 {
 	double rate = 1.0 / dt;
 	double dfr = 60.0 / rate;
+
+	
+	dx += dv.x*dt * speed;
 
 	dy += gravity * dt;
 
@@ -36,7 +39,7 @@ void Entity::update(double dt)
 void Entity::ManagePhysic(double dt)
 {
 	Game& g = *Game::instance;
-	if(eType == EntityType::Player)
+	if(eType == EntityType::Player || eType==EntityType::Enemy)
 	{
 		if (rx + 0.5f > 1.0f)
 		{
@@ -47,6 +50,8 @@ void Entity::ManagePhysic(double dt)
 			else {
 				rx -= dx * dt;
 				dx = 0;
+				if (eType == EntityType::Enemy)
+					dv.x = -1;
 			}
 
 		}
@@ -135,6 +140,7 @@ void Entity::setCooGrid(float coox, float cooy)
 	cy = (int)cooy;
 	ry = cooy - cy;
 }
+
 void Entity::setCooPixel(int px, int py)
 {
 	cx = px / C::CELL_SIZE;
@@ -220,11 +226,13 @@ sf::Vector2i Entity::getPosPixel()
 	int py = (cy + ry) * C::CELL_SIZE;
 	return  { px,py };
 }
+
 sf::Vector2i Entity::getSPosPixel()
 {
 	sf::RenderWindow* win = Game::instance->win;
 	return getPosPixel() -  Vector2i(win->getView().getCenter() - win->getView().getSize() / 2.f);
 }
+
 sf::Vector2f Entity::getPosPixelf()
 {
 	float px = (cx + rx) * C::CELL_SIZE;
@@ -260,7 +268,7 @@ void Entity::ShootBullet(double dt)
 	sf::RectangleShape* sprite = new sf::RectangleShape({6, 6});
 	sprite->setFillColor(sf::Color::Magenta);
 	sprite->setOrigin({ 6 * 0.5f, 6 * 0.5});
-	Entity* e = new Entity(sprite, EntityType::Bullet);
+	Entity* e = new Entity(sprite, EntityType::Bullet, 50);
 	
 	bool mDir =  signbit((getSPosPixel() - g.GetSMousePosition()).x);
 
@@ -272,12 +280,13 @@ void Entity::ShootBullet(double dt)
 	e->cy = cy - 1;
 	e->rx = rx;
 	e->frx = 1;
-	e->dx = mDir ? 50 : -50;
+	e->dx = e->speed * (mDir ? 1 : -1);
 	e->syncPos();
 
 	g.ents.push_back(e);
 	
-	g.cam->AddScreenShake();
+	if(eType == EntityType::Player)
+		g.cam->AddScreenShake();
 
 	bBuffer--;
 	currentST = shootRate;
