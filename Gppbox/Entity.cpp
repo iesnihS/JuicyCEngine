@@ -23,16 +23,17 @@ void Entity::update(double dt)
 	rx += dx * dt;
 	ry += dy * dt;
 
-	if(ManagePhysic(dt))
-	{
-		Destroy();
-		return;
-	}
+	ManagePhysic(dt);
 	ShootBullet(dt);
 	syncPos();
+
+	if (eType != EntityType::Bullet) return;
+
+	lifeTime -= dt;
+	if (lifeTime <= 0) isDestroy = true;
 }
 
-bool Entity::ManagePhysic(double dt)
+void Entity::ManagePhysic(double dt)
 {
 	Game& g = *Game::instance;
 	if(eType == EntityType::Player)
@@ -104,7 +105,7 @@ bool Entity::ManagePhysic(double dt)
 			}
 			else {
 				dx = 0;
-				return true;
+				Destroy();
 			}
 		}
 		if (rx - ratio < 0)
@@ -115,23 +116,15 @@ bool Entity::ManagePhysic(double dt)
 			}
 			else {
 				dx = 0;
-				return true;
+				Destroy();
 			}
 		}
 	}
-	return false;
 }
 
 void Entity::Destroy()
 {
-	Game& g = *Game::instance;
-	for (uint32_t i = 0; i < g.ents.size(); i++)
-	{
-		Entity* e = g.ents[i];
-		if (e != this) continue;
-		g.ents.erase(g.ents.begin() + i);
-		delete e;
-	}
+	isDestroy = true;
 }
 
 void Entity::setCooGrid(float coox, float cooy)
@@ -170,14 +163,20 @@ bool Entity::im()
 	using namespace ImGui;
 
 	bool chg = false;
+	PushID(this);
 
 	Value("Entity Type", (int) eType);
+	if (eType == EntityType::Bullet)
+		Value("Life Time", lifeTime);
 	if(Button(showIg ? "Hidden" : "Show"))
 	{
 		showIg = !showIg;
 	}
 	if (!showIg)
+	{
+		PopID();
 		return chg;
+	}
 	Value("jumping", jumping);
 	Value("cx", cx);
 	Value("cy", cy);
@@ -211,6 +210,7 @@ bool Entity::im()
 		dx = dy = 0;
 		setJumping(false);
 	}
+	PopID();
 	return chg || chgCoo;
 }
 
@@ -276,6 +276,8 @@ void Entity::ShootBullet(double dt)
 	e->syncPos();
 
 	g.ents.push_back(e);
+	
+	g.cam->AddScreenShake();
 
 	bBuffer--;
 	currentST = shootRate;

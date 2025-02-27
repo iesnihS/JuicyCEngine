@@ -1,6 +1,7 @@
 #pragma once
 #define _USE_MATH_DEFINES  
 #include <math.h>
+#include <functional>
 enum class EaseType
 {
 	Linear,
@@ -41,11 +42,11 @@ class Tween
 {
 public:
 	
-	static Tween From(T from)
+    Tween(){}
+	Tween& From(T from)
 	{
-		Tween t = Tween();
-		t._from = from;
-		return t;
+		_from = from;
+		return *this;
 	}
 	Tween& To(T to)
 	{
@@ -65,7 +66,15 @@ public:
     T Update(double dt)
     {
         currentT += dt;
-        if (currentT >= _for)
+        
+        if (currentT >= _for && callBack != nullptr)
+        {
+            double temp = _to;
+            callBack();
+            callBack = nullptr;
+            return temp;
+        }
+        if(currentT >= _for)
             return _to;
 
         double t = currentT / _for;
@@ -173,10 +182,19 @@ public:
             return _from;
         }
     }
-	void Erase();
+    void OnCompleted(std::function<void()> cb)
+    {
+        callBack = cb;
+    }
+    Tween& Reset(double t = 0)
+    {
+        currentT = t;
+        return *this;
+    }
 private :
 	T _from;
 	T _to;
+    std::function<void()> callBack = nullptr;
 	double _for;
 	double currentT = 0; //current Time
 	EaseType _e = EaseType::Linear;

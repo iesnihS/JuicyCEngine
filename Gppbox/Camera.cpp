@@ -19,6 +19,10 @@ void Camera::UpdateCamera(double dt,sf::RenderWindow* win)
 
 	auto v = win->getDefaultView();
 	
+	if (cxTween != nullptr)
+		scOffset.x = cxTween->Update(dt);
+	if (cyTween != nullptr)
+		scOffset.y = cyTween->Update(dt);
 
 	if(target->dv.x > 0.1 || target->dv.x < -0.1)
 	{
@@ -29,7 +33,7 @@ void Camera::UpdateCamera(double dt,sf::RenderWindow* win)
 		x = lerp(-dOffset.x, dOffset.x,t);
 	}
 
-	v.setCenter(target->getPosPixelf() + offset + sf::Vector2f{x,0.f});
+	v.setCenter(target->getPosPixelf() + offset + sf::Vector2f{x,0.f} + scOffset);
 	win->setView(v);
 }
 
@@ -41,9 +45,50 @@ bool Camera::im()
 	Value("Current Offset", cO.x);
 	SameLine();
 	Value(",", cO.y);
+	if(Button("Screen Shake"))
+	{
+		AddScreenShake();
+	}
 
 	bool chg = DragFloat("Speed Camera", &sCam, 0.001f);
 	chg | DragFloat2("Displacement Offset", &dOffset.x, 1.f);
+	chg | DragInt("Screen Shake Power", &scPower, 1.f);
 	
 	return chg;
+}
+
+void Camera::AddScreenShake()
+{
+	int rx = rand() % (scPower * 2) - scPower;
+	if(cxTween ==nullptr)
+	{
+		cxTween = std::make_unique<Tween<float>>();
+		cxTween->From(0).To(rx).For(0.2f).Ease(EaseType::InOutBounce).OnCompleted([this, rx]()
+			{
+				cxTween->Reset().From(rx).To(0).For(0.05f).Ease(EaseType::InOutBounce);
+			});
+	}else
+	{
+		cxTween->Reset().From(0).To(rx).For(0.2f).Ease(EaseType::InOutBounce).OnCompleted([this, rx]()
+			{
+				cxTween->Reset().From(rx).To(0).For(0.05f).Ease(EaseType::InOutBounce);
+			});
+	}
+	
+	int ry = rand() % (scPower * 2) - scPower;
+	if (cyTween == nullptr)
+	{
+		cyTween = std::make_unique<Tween<float>>();
+		cyTween->From(0).To(rx).For(0.5f).Ease(EaseType::InOutBounce).OnCompleted([this, rx]()
+			{
+				cyTween->Reset().From(rx).To(0).For(0.2f).Ease(EaseType::InOutBounce);
+			});
+	}
+	else
+	{
+		cyTween->Reset().From(0).To(rx).For(0.5f).Ease(EaseType::InOutBounce).OnCompleted([this, rx]()
+			{
+				cyTween->Reset().From(rx).To(0).For(0.2f).Ease(EaseType::InOutBounce);
+			});
+	}
 }

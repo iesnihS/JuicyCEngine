@@ -20,6 +20,7 @@ class Entity
 		float currentST = 0; //current time shot in seconds
 		std::queue<Entity*> bullets;
 		bool showIg = false;
+		float lifeTime = 3;
 		
 	public :
 		EntityType eType = EntityType::Enemy;
@@ -49,6 +50,7 @@ class Entity
 		sf::Vector2f dv = sf::Vector2f::Vector2(0, 0); //Desire Velocity
 
 		bool jumping = false;
+		bool isDestroy = false;
 
 		Entity(sf::Shape* shape, EntityType t);
 
@@ -62,7 +64,7 @@ class Entity
 		bool im();
 
 		void setJumping(bool onOff);
-		bool ManagePhysic(double dt);
+		void ManagePhysic(double dt);
 		void AddBulletBuffer();
 
 		sf::Vector2i getPosPixel();

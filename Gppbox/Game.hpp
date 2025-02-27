@@ -21,9 +21,9 @@ private :
 	void DrawGrid(bool canDraw);
 	void DrawBuildIndicator(bool canDraw);
 	
-	Camera cam;
+	
 public:
-
+	Camera* cam;
 	sf::RenderWindow*				win = nullptr;
 
 	sf::RectangleShape				bg;
@@ -47,6 +47,7 @@ public:
 	static Game* instance;
 
 	Game(sf::RenderWindow * win);
+	~Game();
 
 	void initMainChar();
 

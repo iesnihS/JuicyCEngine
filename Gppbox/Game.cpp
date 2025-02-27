@@ -18,7 +18,7 @@ Game::Game(sf::RenderWindow * win) {
 	instance = this;
 	this->win = win;
 
-	cam = Camera();
+	cam = new Camera();
 
 	bg = sf::RectangleShape(Vector2f((float)win->getSize().x, (float)win->getSize().y));
 
@@ -41,7 +41,7 @@ Game::Game(sf::RenderWindow * win) {
 	cacheWalls();
 	initMainChar();
 
-	cam.SetFollowTarget(ents[0], { 0, -300.f }, {250.f, 0.f });
+	cam->SetFollowTarget(ents[0], { 0, -300.f }, {250.f, 0.f });
 
 }
 
@@ -184,6 +184,10 @@ void Game::update(double dt) {
 	{
 		Entity* e = ents[i];
 		e->update(dt);
+
+		if (!e->isDestroy) continue;
+		ents.erase(ents.begin() + i);
+		delete e;
 	}
 
 	if (bgShader) bgShader->update(dt);
@@ -191,7 +195,7 @@ void Game::update(double dt) {
 	beforeParts.update(dt);
 	afterParts.update(dt);
 
-	cam.UpdateCamera(dt, win);
+	cam->UpdateCamera(dt, win);
 }
 
  void Game::draw(sf::RenderWindow & win) {
@@ -352,7 +356,7 @@ void Game::im()
 			TreePop();
 		}
 		if (TreeNodeEx("Camera", 0)) {
-			cam.im();
+			cam->im();
 			TreePop();
 		}
 		
@@ -361,5 +365,9 @@ void Game::im()
 	{
 		Checkbox("Can Build", &canBuild);
 	}
+}
+Game::~Game()
+{
+	delete cam;
 }
 
