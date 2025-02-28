@@ -52,7 +52,7 @@ void Game::initMainChar()
 	sprite->setOutlineColor(sf::Color::Red);
 	sprite->setOutlineThickness(2);
 	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
-	Entity* e = new Entity(sprite, EntityType::Player, 5);
+	Entity* e = new Entity(sprite, EntityType::Player, 5, 40);
 
 	e->size = C::CELL_SIZE;
 	e->ry = 0.99f;
@@ -70,7 +70,7 @@ void Game::initEnnemy(int cx, int cy)
 	sf::RectangleShape* sprite = new sf::RectangleShape({ C::CELL_SIZE, C::CELL_SIZE * 2 });
 	sprite->setFillColor(sf::Color::Red);
 	sprite->setOrigin({ C::CELL_SIZE * 0.5f, C::CELL_SIZE * 2 });
-	Entity* e = new Entity(sprite, EntityType::Enemy, 5);
+	Entity* e = new Entity(sprite, EntityType::Enemy, 2, 30);
 
 	e->size = C::CELL_SIZE;
 	e->ry = 0.99f;
@@ -154,7 +154,7 @@ void Game::pollInput(double dt) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
 			if (mainChar && !mainChar->jumping) {
-				mainChar->dy -= 40;
+				mainChar->dy -= mainChar->jF;
 				mainChar->setJumping(true);
 			}
 		}
@@ -212,6 +212,16 @@ void Game::update(double dt) {
 		delete e;
 	}
 
+	for (int i = fVFX.size() - 1; i >= 0; i--)
+	{
+		Explosion* e = fVFX[i];
+		e->Update(dt);
+
+		if (!e->isDestroy) continue;
+		fVFX.erase(fVFX.begin() + i);
+		delete e;
+	}
+
 	if (bgShader) bgShader->update(dt);
 
 	beforeParts.update(dt);
@@ -244,6 +254,10 @@ void Game::update(double dt) {
 	{
 		e->draw(win);
 	}
+	for (auto& vfx : fVFX)
+	{
+		vfx->Draw(&win);
+	}
 
 	afterParts.draw(win);
 }
@@ -258,6 +272,17 @@ bool Game::hasCollision(float gridx, float gridy)
 			return true;
 
 	return false;
+}
+
+vector<Entity*> Game::hasCollisionEntity(Entity*current)
+{
+	vector<Entity*> touched;
+	for(auto& e : ents)
+	{
+		if (e != current && e->sptr->getGlobalBounds().intersects(current->sptr->getGlobalBounds()))
+			touched.push_back(e);
+	}
+	return touched;
 }
 
 void Game::DrawGrid(bool canDraw)

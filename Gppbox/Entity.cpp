@@ -3,7 +3,7 @@
 #include "C.hpp"
 #include "Game.hpp"
 
-Entity::Entity(Shape* shape, EntityType t, float s) : sptr(shape), eType(t), speed(s)
+Entity::Entity(Shape* shape, EntityType t, float s, float jumpForce) : sptr(shape), eType(t), speed(s), jF(jumpForce)
 {
 	if (t == EntityType::Player)
 		showIg = true;
@@ -16,7 +16,7 @@ void Entity::update(double dt)
 	double dfr = 60.0 / rate;
 
 	
-	dx += dv.x*dt * speed;
+	dx += dv.x * speed * (dt == 0 ? 0 : 1);
 
 	dy += gravity * dt;
 
@@ -41,9 +41,28 @@ void Entity::ManagePhysic(double dt)
 	Game& g = *Game::instance;
 	if(eType == EntityType::Player || eType==EntityType::Enemy)
 	{
+		vector<Entity*> touchedVec = g.hasCollisionEntity(this);
+		for(Entity* touched : touchedVec)
+		{
+			if (touched->eType == EntityType::Bullet && touched->parent != this)
+			{
+				touched->Destroy();
+				Destroy();
+			}
+			else if (touched->eType == EntityType::Player)
+			{
+				touched->Reset();
+			}	
+		}
+		
 		if (rx + 0.5f > 1.0f)
 		{
-			if (!g.hasCollision(cx + rx + 0.5f, cy + ry - 0.5f) && !g.hasCollision(cx + rx + 0.5f, cy + ry - 1.5f)) {
+			bool side1 = g.hasCollision(cx + rx + 0.5f, cy + ry - 0.5f);
+			bool side2 = g.hasCollision(cx + rx + 0.5f, cy + ry - 1.5f);
+			bool floor1 = g.hasCollision(cx + rx + 0.5f, cy + ry + .5f);
+
+			if (((eType == EntityType::Enemy && floor1) || eType == EntityType::Player)&& !side1 && !side2)
+			{
 				rx--;
 				cx++;
 			}
@@ -56,16 +75,23 @@ void Entity::ManagePhysic(double dt)
 
 		}
 		if (rx - 0.5 < 0) {
-			if (!g.hasCollision(cx + rx - 0.5, cy + ry - 0.5f) && !g.hasCollision(cx + rx - 0.5f, cy + ry - 1.5f)) {
+			bool side1 = g.hasCollision(cx + rx - 0.5, cy + ry - 0.5f);
+			bool side2 = g.hasCollision(cx + rx - 0.5f, cy + ry - 1.5f);
+			bool floor1 = g.hasCollision(cx + rx - 0.5f, cy + ry + .5f);
+			if (((eType == EntityType::Enemy && floor1) || eType == EntityType::Player) && !side1 && !side2)
+			{
 				rx++;
 				cx--;
 			}
 			else {
 				rx -= dx * dt;
 				dx = 0;
+				if (eType == EntityType::Enemy)
+					dv.x = 1;
 			}
 		}
-
+		
+		
 
 
 		if (jumping) {
@@ -98,6 +124,7 @@ void Entity::ManagePhysic(double dt)
 		}
 		else if (!g.hasCollision(cx + rx + 0.5f, cy + ry + 0.1f) && !g.hasCollision(cx + rx - 0.5f, cy + ry + 0.1f))
 			setJumping(true);
+
 	}
 	else if(eType == EntityType::Bullet)
 	{
@@ -125,11 +152,27 @@ void Entity::ManagePhysic(double dt)
 			}
 		}
 	}
+
 }
 
 void Entity::Destroy()
 {
+	if(eType == EntityType::Enemy)
+	{
+		CreateExplosion();
+	}
 	isDestroy = true;
+}
+
+void Entity::Reset()
+{
+	cx = 3;
+	cy = 54;
+	rx = 0.5f;
+	ry = 0.99f;
+
+	dx = dy = 0;
+	setJumping(false);
 }
 
 void Entity::setCooGrid(float coox, float cooy)
@@ -208,13 +251,7 @@ bool Entity::im()
 	Value("Time before shooting", currentST);
 
 	if (Button("Reset")) {
-		cx = 3;
-		cy = 54;
-		rx = 0.5f;
-		ry = 0.99f;
-
-		dx = dy = 0;
-		setJumping(false);
+		Reset();
 	}
 	PopID();
 	return chg || chgCoo;
@@ -274,6 +311,7 @@ void Entity::ShootBullet(double dt)
 
 	dx += mDir ? -kb : kb;
 
+	e->lifeTime = 3.f;
 	e->size = 6;
 	e->ry = ry;
 	e->cx = cx;
@@ -282,7 +320,7 @@ void Entity::ShootBullet(double dt)
 	e->frx = 1;
 	e->dx = e->speed * (mDir ? 1 : -1);
 	e->syncPos();
-
+	e->parent = this;
 	g.ents.push_back(e);
 	
 	if(eType == EntityType::Player)
@@ -296,4 +334,14 @@ void Entity::AddBulletBuffer()
 {
 	if(bBuffer < maxSizeBB)
 		bBuffer++;
+}
+void Entity::CreateExplosion()
+{
+	Explosion* e = new Explosion(getPosPixelf() + Vector2f{0,(float)-size}, 0.4f, EaseType::OutCubic, C::CELL_SIZE);
+	Game::instance->fVFX.push_back(e);
+}
+
+Entity::~Entity()
+{
+	delete sptr;
 }

@@ -1,14 +1,13 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <queue>
 
 enum class EntityType 
 {
 	None,
 	Player,
 	Bullet,
-	Enemy
+	Enemy,
 };
 
 class Entity
@@ -18,16 +17,17 @@ class Entity
 		int maxSizeBB = 1; //bb == Bullet Buffer
 		float shootRate = 0.1f; //seconds
 		float currentST = 0; //current time shot in seconds
-		std::queue<Entity*> bullets;
 		bool showIg = false;
-		float lifeTime = 3;
+		
 		
 	public :
+		float lifeTime = 3;
 		EntityType eType = EntityType::Enemy;
 		sf::Shape* sptr = 0; //nullptr
-
+		Entity* parent;
 		float kb = 1.6f;
 		float speed = 5;
+		float jF = 40; //Jump Force
 		int size = 5;
 
 		//Cell coord
@@ -53,7 +53,8 @@ class Entity
 		bool jumping = false;
 		bool isDestroy = false;
 
-		Entity(sf::Shape* shape, EntityType t, float speed);
+		Entity(sf::Shape* shape, EntityType t, float speed, float jF = 0.f);
+		~Entity();
 
 		void update(double deltaTime);
 
@@ -72,7 +73,9 @@ class Entity
 		sf::Vector2i getSPosPixel(); //ScreenPosPixel
 		sf::Vector2f getPosPixelf();
 
+		void CreateExplosion();
 		void ShootBullet(double dt);
 		void Destroy();
+		void Reset();
 };
 

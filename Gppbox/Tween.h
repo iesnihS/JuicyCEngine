@@ -182,9 +182,10 @@ public:
             return _from;
         }
     }
-    void OnCompleted(std::function<void()> cb)
+    Tween& OnCompleted(std::function<void()> cb)
     {
         callBack = cb;
+        return *this;
     }
     Tween& Reset(double t = 0)
     {
