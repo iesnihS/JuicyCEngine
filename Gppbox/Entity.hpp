@@ -8,6 +8,7 @@ enum class EntityType
 	Player,
 	Bullet,
 	Enemy,
+	Laser
 };
 
 class Entity
@@ -77,5 +78,6 @@ class Entity
 		void ShootBullet(double dt);
 		void Destroy();
 		void Reset();
+		void CreateLaser();
 };
 

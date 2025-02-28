@@ -167,7 +167,7 @@
     <ClCompile Include="Bloom.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="Explosion.cpp" />
+    <ClCompile Include="VFX.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HotReloadShader.cpp" />
     <ClCompile Include="Lib.cpp" />
@@ -187,7 +187,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Dice.hpp" />
     <ClInclude Include="Entity.hpp" />
-    <ClInclude Include="Explosion.h" />
+    <ClInclude Include="VFX.h" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="HotReloadShader.hpp" />
     <ClInclude Include="Interp.hpp" />

@@ -62,6 +62,8 @@ int main()
 	ImGui::SFML::Init(window);
 
 	Game g(&window);
+	float bloomWidth = 12;
+	g.bloomWidth = &bloomWidth;
 
 	Vector2i winPos;
 
@@ -90,7 +92,7 @@ int main()
 	destFinal->create(window.getSize().x, window.getSize().y);
 	destFinal->clear(sf::Color(0, 0, 0, 0));
 
-	float bloomWidth = 12;
+	
 	sf::Glsl::Vec4 bloomMul(1, 1, 1, 0.8f);
 
 	while (window.isOpen())

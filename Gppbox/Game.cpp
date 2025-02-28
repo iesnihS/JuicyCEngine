@@ -8,11 +8,13 @@
 #include "Tween.h"
 #include "HotReloadShader.hpp"
 #include "fstream"
+#include "Utils.h"
 
 
 static int cols = C::RES_X / C::CELL_SIZE;
 static int lastLine = C::RES_Y / C::CELL_SIZE - 1;
 Game* Game::instance = 0;
+
 
 Game::Game(sf::RenderWindow * win) {
 
@@ -132,25 +134,28 @@ void Game::pollInput(double dt) {
 		}
 	}
 
+	//bool gamePad = sf::Joystick::isConnected(0);
 	float lateralSpeed = 8.0;
 	float maxSpeed = 40.0;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+	
+	float x = sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::X);
+	if (x < -10 || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)){
 		if (ents.size()) {
 			auto mainChar = ents[0];
 			if (mainChar) 
-				mainChar->dv.x =-1;
+				mainChar->dv.x = x < -10 ? x / 100.f : -1;
 		}
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+	if (x > 10 || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
 			if (mainChar) 
-				mainChar->dv.x = 1;
+				mainChar->dv.x = x > 10 ? x/100.f :1;
 		}
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+	if (sf::Joystick::isButtonPressed(0, 0) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
 			if (mainChar && !mainChar->jumping) {
@@ -159,7 +164,9 @@ void Game::pollInput(double dt) {
 			}
 		}
 	}
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+	if (sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::Z) < -10 || 
+		sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::Z) > 10 
+		|| sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 		if (ents.size()) {
 			auto mainChar = ents[0];
 			if (mainChar) {
@@ -216,7 +223,7 @@ void Game::update(double dt) {
 
 	for (int i = fVFX.size() - 1; i >= 0; i--)
 	{
-		Explosion* e = fVFX[i];
+		VFX* e = fVFX[i];
 		e->Update(dt);
 
 		if (!e->isDestroy) continue;
@@ -260,6 +267,7 @@ void Game::update(double dt) {
 	{
 		vfx->Draw(&win);
 	}
+	
 
 	afterParts.draw(win);
 }
@@ -503,7 +511,6 @@ void Game::LevelToFile(ofstream& of, bool player)
 	of.close();
 }
 
-#include <iostream>
 void Game::FileToLevel(ifstream& ifs, bool pl)
 {
 
@@ -515,7 +522,6 @@ void Game::FileToLevel(ifstream& ifs, bool pl)
 
 	while (ifs >> type >> x >> y)
 	{
-		std::cout << "Read type: [" << type << "] x: " << x << " y: " << y << std::endl;
 
 		if (type == "W") {
 			walls.push_back(Vector2i(x, y));
@@ -559,4 +565,5 @@ Game::~Game()
 {
 	delete cam;
 }
+
 

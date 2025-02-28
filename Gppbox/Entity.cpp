@@ -176,6 +176,13 @@ void Entity::Reset()
 	setJumping(false);
 }
 
+void Entity::CreateLaser()
+{
+	
+}
+
+
+
 void Entity::setCooGrid(float coox, float cooy)
 {
 	cx = (int)coox;
@@ -303,27 +310,40 @@ void Entity::ShootBullet(double dt)
 	
 	Game& g = *Game::instance;
 
-	sf::RectangleShape* sprite = new sf::RectangleShape({6, 6});
+	sf::RectangleShape* sprite = new sf::RectangleShape({ 12, 12 });
 	sprite->setFillColor(sf::Color::Magenta);
-	sprite->setOrigin({ 6 * 0.5f, 6 * 0.5});
-	Entity* e = new Entity(sprite, EntityType::Bullet, 50);
+	sprite->setOrigin({ 12 * 0.5f,12 * 0.5});
+	Entity* e = new Entity(sprite, EntityType::Bullet, 70);
 	
 	bool mDir =  signbit((getSPosPixel() - g.GetSMousePosition()).x);
+	if(sf::Joystick::isConnected(0))
+	{
+		if (sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::Z) < -10)
+			mDir = true;
+		else if(sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::Z) > 10)
+			mDir = false;
+	}
 
 	dx += mDir ? -kb : kb;
 
+	float xOffset = (mDir ? 0.5f : -0.5f);
+
 	e->lifeTime = 3.f;
-	e->size = 6;
+	e->size = 12;
 	e->ry = ry;
 	e->cx = cx;
 	e->cy = cy - 1;
-	e->rx = rx;
+	e->rx = rx + xOffset;
 	e->frx = 1;
 	e->dx = e->speed * (mDir ? 1 : -1);
 	e->syncPos();
 	e->parent = this;
 	g.ents.push_back(e);
+
+	VFX* muzzle = new VFX(getPosPixelf() , Vector2f{ size*xOffset,(float)-size }, 0.1f, EaseType::OutCubic, rand() % 10 + 5, VFXType::Muzzle, this);
 	
+	g.fVFX.push_back(muzzle);
+
 	if(eType == EntityType::Player)
 		g.cam->AddScreenShake();
 
@@ -339,11 +359,97 @@ void Entity::AddBulletBuffer()
 void Entity::CreateExplosion()
 {
 	
-	Explosion* e = new Explosion(getPosPixelf() + Vector2f{0,(float)-size}, 0.3f, EaseType::OutCubic, rand()%20 +5);
+	VFX* e = new VFX(getPosPixelf() , Vector2f{0,(float)-size}, 0.3f, EaseType::OutCubic, rand()%20 +5, VFXType::Explosion);
 	Game::instance->fVFX.push_back(e);
 }
 
 Entity::~Entity()
 {
 	delete sptr;
+}
+
+std::vector<sf::Vector2i> Bresenham(
+	Game* g,
+	int xStart, int yStart,
+	int xEnd, int yEnd)
+{
+	std::vector<sf::Vector2i> buffer;
+	int dx = xEnd - xStart;
+	int dy = yEnd - yStart;
+
+	if (std::abs(dx) > std::abs(dy)) {
+		bool swap = xStart > xEnd;
+		if (swap) {
+			std::swap(xStart, xEnd);
+			std::swap(yStart, yEnd);
+			dx = -dx;
+			dy = -dy;
+		}
+
+		int yInc = 1;
+
+		if (dy < 0) {
+			yInc = -1;
+			dy = -dy;
+		}
+
+		int y = yStart;
+		int D = 2 * dy - dx;
+
+		const int DInc1 = 2 * dy;
+		const int DInc2 = 2 * (dy - dx);
+		for (int x = xStart; x <= xEnd; x++)
+		{
+
+			if (g->hasCollision(x, y))
+				return buffer;
+
+			buffer.push_back({ x * C::CELL_SIZE, y * C::CELL_SIZE });
+
+			if (D < 0) {
+				D += DInc1;
+			}
+			else {
+				D += DInc2;
+				y += yInc;
+			}
+		}
+	}
+	else {
+		if (yStart > yEnd) {
+			std::swap(xStart, xEnd);
+			std::swap(yStart, yEnd);
+			dx = -dx;
+			dy = -dy;
+		}
+
+		int xInc = 1;
+
+		if (dx < 0) {
+			xInc = -1;
+			dx = -dx;
+		}
+
+		int x = xStart;
+		int D = 2 * dx - dy;
+
+		const int DInc1 = 2 * dx;
+		const int DInc2 = 2 * (dx - dy);
+
+		for (int y = yStart; y <= yEnd; y++) {
+
+			if (g->hasCollision(x, y))
+				return buffer;
+			buffer.push_back({ x * C::CELL_SIZE, y * C::CELL_SIZE });
+
+			if (D < 0) {
+				D += DInc1;
+			}
+			else {
+				D += DInc2;
+				x += xInc;
+			}
+		}
+	}
+	return buffer;
 }

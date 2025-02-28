@@ -11,7 +11,7 @@
 #include "Particle.hpp"
 #include "ParticleMan.hpp"
 #include "Camera.h"
-#include "Explosion.h"
+#include "VFX.h"
 
 
 using namespace sf;
@@ -50,7 +50,7 @@ public:
 	std::vector<sf::RectangleShape> wallSprites;
 
 	std::vector<Entity*> ents;
-	std::vector<Explosion*> fVFX; //Front
+	std::vector<VFX*> fVFX; //Front
 
 	ParticleMan beforeParts;
 	ParticleMan afterParts;
@@ -69,6 +69,8 @@ public:
 	bool wasPressed = false;
 	void pollInput(double dt);
 	void onSpacePressed();
+
+	float* bloomWidth;
 	
 	bool hasCollision(float gridx, float gridy);
 	vector<Entity*> hasCollisionEntity(Entity* current);
