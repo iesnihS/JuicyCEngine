@@ -128,6 +128,16 @@ public:
 
         case EaseType::InOutQuint:
             return _from + (_to - _from) * (t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2);
+        case EaseType::InExpo:
+            return (t == 0) ? 0 : pow(2, 10 * t - 10);
+
+        case EaseType::OutExpo:
+            return (t == 1) ? 1 : 1 - pow(2, -10 * t);
+
+        case EaseType::InOutExpo:
+            if (t == 0) return 0;
+            if (t == 1) return 1;
+            return (t < 0.5) ? pow(2, 10 * (2 * t - 1)) / 2 : (2 - pow(2, -10 * (2 * t - 1))) / 2;
 
         case EaseType::InCirc:
             return _from + (_to - _from) * (1 - sqrt(1 - pow(t, 2)));

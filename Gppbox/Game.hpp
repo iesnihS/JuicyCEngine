@@ -30,6 +30,7 @@ private :
 	void DrawGrid(bool canDraw);
 	void DrawBuildIndicator(bool canDraw);
 	BuildMode cbm = BuildMode::Block;
+	float cSleep = 0; //current Sleep
 	
 public:
 	Camera* cam;
@@ -59,7 +60,7 @@ public:
 	Game(sf::RenderWindow * win);
 	~Game();
 
-	void initMainChar();
+	void initMainChar(int cx, int cy, float rx, float ry);
 	void initEnnemy(int cx, int cy);
 
 	void cacheWalls();
@@ -78,8 +79,12 @@ public:
 	bool isWall(int cx, int cy);
 	void im();
 
+	void SleepDT(double sleep);
 	void UpdateBuild();
 	void DrawDebug();
+	void LevelToFile(ofstream& of, bool pl = false); //save player
+	void FileToLevel(ifstream& ifs, bool pl = false); //load player
+	void ClearEnts(bool pl = false);//clear player
 	sf::Vector2i GetWMousePosition(); //World
 	sf::Vector2i GetSMousePosition(); //Screen
 };

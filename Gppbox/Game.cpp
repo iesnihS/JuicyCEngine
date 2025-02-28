@@ -7,6 +7,7 @@
 #include "Game.hpp"
 #include "Tween.h"
 #include "HotReloadShader.hpp"
+#include "fstream"
 
 
 static int cols = C::RES_X / C::CELL_SIZE;
@@ -39,13 +40,12 @@ Game::Game(sf::RenderWindow * win) {
 
 	
 	cacheWalls();
-	initMainChar();
+	initMainChar(3,54,0.5f,0.99f);
 
 	cam->SetFollowTarget(ents[0], { 0, -300.f }, {250.f, 0.f });
-
 }
 
-void Game::initMainChar()
+void Game::initMainChar(int cx, int cy, float rx, float ry)
 {
 	sf::RectangleShape* sprite = new sf::RectangleShape({ C::CELL_SIZE, C::CELL_SIZE * 2 });
 	sprite->setFillColor(sf::Color::Cyan);
@@ -55,10 +55,10 @@ void Game::initMainChar()
 	Entity* e = new Entity(sprite, EntityType::Player, 5, 40);
 
 	e->size = C::CELL_SIZE;
-	e->ry = 0.99f;
-	e->cx = 3;
-	e->cy = 54;
-	e->rx = 0.5f;
+	e->ry = ry;
+	e->cx = cx;
+	e->cy = cy;
+	e->rx = rx;
 	e->syncPos();
 	
 
@@ -197,6 +197,8 @@ int blendModeIndex(sf::BlendMode bm) {
 
 void Game::update(double dt) {
 	dt *= dtModifier;
+	cSleep = fmax(cSleep-dt, 0);
+	dt = cSleep <= 0 ? dt : 0;
 	
 	pollInput(dt);
 
@@ -345,6 +347,13 @@ void Game::DrawDebug()
 	DrawBuildIndicator(canBuild);
 }
 
+
+
+void Game::SleepDT(double sleep)
+{
+	cSleep = sleep;
+}
+
 void Game::UpdateBuild()
 {
 	auto& io = ImGui::GetIO();
@@ -449,15 +458,103 @@ void Game::im()
 		{
 			dtModifier = canBuild ? 0 : 1;
 		}
-
-		int i= (int)cbm;
-		const char* entityTypeNames[] = { "None", "Block", "Ennemy"};
-		if(ImGui::Combo("Build Mode", &i, entityTypeNames, 3))
+		int i = (int)cbm;
+		const char* entityTypeNames[] = { "None", "Block", "Ennemy" };
+		if (ImGui::Combo("Build Mode", &i, entityTypeNames, 3))
 		{
-			cbm = (BuildMode) i;
+			cbm = (BuildMode)i;
 		}
+		Separator();
+
+		static bool savePl = false;
+		Checkbox("Save Player", &savePl);
+		
+		static char str0[128] = "Level";
+		InputText("", str0, IM_ARRAYSIZE(str0));
+		
+		if(Button("Save"))
+		{
+			ofstream level(str0);
+			LevelToFile(level, savePl);
+		}
+		SameLine();
+		if (Button("Load"))
+		{
+			ifstream level(str0);
+			FileToLevel(level, savePl);
+		}
+
+				
 	}
 }
+void Game::LevelToFile(ofstream& of, bool player)
+{
+	for(Entity* e : ents)
+	{
+		if (player && e->eType == EntityType::Player)
+			of << "P " << e->getPosPixel().x<< " " << e->getPosPixel().y << "\n";
+		else if (e->eType == EntityType::Enemy)
+			of << "E " << e->cx << " " << e->cy << "\n";
+	}
+	for (Vector2i w : walls)
+	{
+		of << "W " << w.x << " " << w.y << "\n";
+	}
+	of.close();
+}
+
+#include <iostream>
+void Game::FileToLevel(ifstream& ifs, bool pl)
+{
+
+	walls.clear();
+	ClearEnts(pl);
+
+	string type;
+	int x, y;
+
+	while (ifs >> type >> x >> y)
+	{
+		std::cout << "Read type: [" << type << "] x: " << x << " y: " << y << std::endl;
+
+		if (type == "W") {
+			walls.push_back(Vector2i(x, y));
+		}
+		else if (type == "P" && pl) {
+			int cx = x / C::CELL_SIZE;
+			int cy = y / C::CELL_SIZE;
+
+			float rx = (x - (cx * C::CELL_SIZE)) / (float)C::CELL_SIZE;
+			float ry = (y - (cy * C::CELL_SIZE)) / (float)C::CELL_SIZE;
+
+			initMainChar(cx, cy, rx, ry);
+		}
+		else if (type == "E") {
+			initEnnemy(x, y);
+		}
+	}
+
+	ifs.close();
+	cacheWalls();
+
+	if(pl)
+		cam->SetFollowTarget(ents[0], { 0, -300.f }, { 250.f, 0.f });
+
+}
+void Game::ClearEnts(bool pl)
+{
+	for (int i = ents.size() - 1; i >= 0; i--)
+	{
+		Entity* e = ents[i];
+		
+		if (!pl && e->eType == EntityType::Player)
+			continue;
+		ents.erase(ents.begin() + i);
+		delete e;
+	}
+
+}
+
 Game::~Game()
 {
 	delete cam;

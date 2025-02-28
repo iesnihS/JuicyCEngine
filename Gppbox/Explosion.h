@@ -8,6 +8,9 @@ public:
 	bool isDestroy = false;
 	float mSize;
 	Tween<float> tween;
+	Tween<float> rt;
+	Tween<float> gt;
+	Tween<float> at;
 	sf::CircleShape* sptr;
 	Explosion(sf::Vector2f pos, float duration, EaseType ease, float size);
 	void Update(double dt);

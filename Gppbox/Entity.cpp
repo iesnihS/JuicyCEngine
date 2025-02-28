@@ -160,6 +160,7 @@ void Entity::Destroy()
 	if(eType == EntityType::Enemy)
 	{
 		CreateExplosion();
+		Game::instance->SleepDT(0.02f);
 	}
 	isDestroy = true;
 }
@@ -337,7 +338,8 @@ void Entity::AddBulletBuffer()
 }
 void Entity::CreateExplosion()
 {
-	Explosion* e = new Explosion(getPosPixelf() + Vector2f{0,(float)-size}, 0.4f, EaseType::OutCubic, C::CELL_SIZE);
+	
+	Explosion* e = new Explosion(getPosPixelf() + Vector2f{0,(float)-size}, 0.3f, EaseType::OutCubic, rand()%20 +5);
 	Game::instance->fVFX.push_back(e);
 }
 
